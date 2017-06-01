@@ -64,6 +64,7 @@ public class SummaryControllerITest extends BaseControllerITest {
         existingSection = new AttendanceSection();
         existingSection.setCanvasCourseId(existingCourse.getCanvasCourseId());
         existingSection.setCanvasSectionId(1000L);
+        existingSection.setName("Section");
         existingSection = sectionRepository.save(existingSection);
 
         existingStudent = new AttendanceStudent();
