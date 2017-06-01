@@ -7,6 +7,7 @@ import edu.ksu.canvas.attendance.model.AttendanceSummaryModel;
 import edu.ksu.canvas.attendance.repository.*;
 import edu.ksu.canvas.attendance.services.SynchronizationService;
 import edu.ksu.lti.launch.exception.NoLtiSessionException;
+import org.apache.log4j.Logger;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -16,6 +17,7 @@ import org.springframework.web.util.NestedServletException;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.List;
 
 import static org.hamcrest.Matchers.*;
@@ -26,6 +28,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @RunWith(SpringJUnit4ClassRunner.class)
 public class SummaryControllerITest extends BaseControllerITest {
+
+    private static final Logger LOG = Logger.getLogger(SummaryControllerITest.class);
 
     private AttendanceCourse existingCourse;
     private AttendanceSection existingSection;
@@ -83,6 +87,10 @@ public class SummaryControllerITest extends BaseControllerITest {
         existingAttendance.setMinutesMissed(5);
         existingAttendance.setStatus(Status.TARDY);
         existingAttendance = attendanceRepository.save(existingAttendance);
+
+        List<Attendance> attendances = new ArrayList<Attendance>();
+        attendances.add(existingAttendance);
+        existingStudent.setAttendances(attendances);
 
         existingMakeup = new Makeup();
         existingMakeup.setAttendanceStudent(existingStudent);
@@ -196,15 +204,16 @@ public class SummaryControllerITest extends BaseControllerITest {
         Long studentId = existingStudent.getStudentId();
         String sisUserId = existingStudent.getSisUserId();
 
+
         List<AttendanceSummaryModel> attendanceSummaryModelList = reportRepository.getSimpleAttendanceSummary(sectionId);
 
         for(AttendanceSummaryModel attendanceSummaryModel: attendanceSummaryModelList) {
             for(AttendanceSummaryModel.Entry entry : attendanceSummaryModel.getEntries()) {
                 if(entry.getStudentId() == existingStudent.getStudentId()) {
-                    AttendanceSummaryModel.Entry studentSummary = new AttendanceSummaryModel.Entry(existingCourse.getCourseId(),existingSection.getSectionId(),studentId, sisUserId, existingStudent.getName(), existingStudent.getDeleted(),entry.getTotalClassesTardy(),entry.getSumMinutesMissed(), entry.getTotalClassesExcused(), entry.getTotalClassesPresent());
+                    AttendanceSummaryModel.Entry studentSummary = new AttendanceSummaryModel.Entry(existingCourse.getCourseId(),existingSection.getSectionId(),studentId, sisUserId, existingStudent.getName(), existingStudent.getDeleted(),entry.getTotalClassesTardy(),entry.getTotalClassesMissed(), entry.getTotalClassesExcused(), entry.getTotalClassesPresent());
                     mockMvc.perform(get("/studentSummary/"+sectionId+"/"+studentId))
                             .andExpect(status().isOk())
-                            .andExpect(view().name("studentSummary"))
+                            .andExpect(view().name("simpleStudentSummary"))
                             .andExpect(model().attribute("sectionId", is(sectionId.toString())))
                             .andExpect(model().attribute("student",
                                     allOf(
