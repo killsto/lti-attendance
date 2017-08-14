@@ -32,6 +32,7 @@ public class CourseConfigurationForm {
 
     private String assignmentName;
 
+    private long sectionId;
 
     public int getTotalClassMinutes() {
         return totalClassMinutes;
@@ -121,5 +122,13 @@ public class CourseConfigurationForm {
 
     public void setAssignmentName(String assignmentName) {
         this.assignmentName = assignmentName;
+    }
+
+    public long getSectionId() {
+        return sectionId;
+    }
+
+    public void setSectionId(long sectionId) {
+        this.sectionId = sectionId;
     }
 }

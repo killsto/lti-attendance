@@ -129,7 +129,18 @@
                 <form:checkbox  path ="gradingOn" id="conversionConfirm"/> Convert Attendance to Assignment
             </label>
         <br/>
-
+        <div class="section-dropdown">
+            <div class="row">
+                <div class='col-sm-4'>
+                    <div class="form-group">
+                        <label for="sectionId">Section</label>
+                        <form:select class="form-control" id="sectionId" path="sectionId" items="${sectionList}"
+                                     itemValue="canvasSectionId" itemLabel="name"
+                                     onchange="toggleSection(value, '${context}');"/>
+                    </div>
+                </div>
+            </div>
+        </div>
         <div class = "container-fluid ${courseConfigurationForm.gradingOn? '' : 'hidden'}" id="conversionConfig" >
             <br/>
             <p> <strong>NOTE:</strong> Select “Save Setup” every time changes are made. When this assignment is pushed to the gradebook, it will immediately be published.
@@ -266,6 +277,10 @@
                 }
             }
         });
+
+//        $("#sectionId").change(function() {
+//
+//        });
 
         $("#assignmentName, #assignmentPoints, #presentPoints, #tardyPoints, #absentPoints, #excusedPoints").keyup(function () {
             disablePushConfirmation();

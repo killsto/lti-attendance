@@ -80,7 +80,6 @@ public class AttendanceCourse implements Serializable {
         this.canvasCourseId = canvasCourseId;
     }
 
-
     @Override
     public String toString() {
         return "AttendanceCourse [courseId=" + courseId + ", totalMinutes=" + totalMinutes + ", defaultMinutesPerSession="

@@ -87,7 +87,7 @@ public class RosterController extends AttendanceBaseController {
         rosterForm.setCurrentDate(date);
         rosterForm.setSectionId(selectedSection.getSectionId());
         rosterForm.setSectionModels(sectionModelFactory.createSectionModels(sections));
-        courseService.loadIntoForm(rosterForm, selectedSection.getCanvasCourseId());
+        courseService.loadIntoForm(rosterForm, selectedSection.getCanvasSectionId());
         attendanceService.loadIntoForm(rosterForm, date);
 
         ModelAndView page = new ModelAndView("roster");

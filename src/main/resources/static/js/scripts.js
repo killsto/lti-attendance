@@ -10,6 +10,11 @@ function toggleSection(val, contextPath) {
     $("#sectionSelect").attr("action", contextPath + "/roster/" + val + "/save");
 }
 
+//function toggleSectionOnConfiguration(val, contextPath) {
+//    $("#assingmentName").hide()
+//
+//}
+
 function disablePushConfirmation(){
     $('#pushConfirmation')
         .attr("disabled", "disabled")

@@ -47,27 +47,23 @@ public class AttendanceSectionService {
     /**
      * @throws RuntimeException when courseForm or sections list are null or empty
      */
-    public void save(CourseConfigurationForm courseForm, long canvasCourseId) {
+    public void save(CourseConfigurationForm courseForm, long canvasSectionId) {
         Validate.notNull(courseForm, "courseForm must not be null");
 
-        List<AttendanceSection> sections = sectionRepository.findByCanvasCourseId(canvasCourseId);
-        if(CollectionUtils.isEmpty(sections)) {
+        AttendanceSection selectedSection = sectionRepository.findByCanvasSectionId(canvasSectionId);
+        if(selectedSection == null) {
             RuntimeException e = new RuntimeException("Cannot load data into courseForm for non-existent sections for this course");
-            throw new ContextedRuntimeException(e).addContextValue("courseId", canvasCourseId);
+            throw new ContextedRuntimeException(e).addContextValue("courseId", canvasSectionId);
         }
 
-        List<AttendanceAssignment> attendanceAssignments = new ArrayList<>();
-        for(AttendanceSection section : sections) {
-            AttendanceAssignment assignment = assignmentRepository.findByAttendanceSection(section);
+
+            AttendanceAssignment assignment = assignmentRepository.findByAttendanceSection(selectedSection);
             if(assignment == null) {
                 assignment = new AttendanceAssignment();
-                assignment.setAttendanceSection(section);
+                assignment.setAttendanceSection(selectedSection);
             }
 
-            attendanceAssignments.add(assignment);
-        }
 
-        for(AttendanceAssignment assignment : attendanceAssignments) {
             assignment.setAssignmentName(courseForm.getAssignmentName());
             assignment.setGradingOn(courseForm.getGradingOn());
             assignment.setAssignmentPoints(courseForm.getAssignmentPoints());
@@ -76,7 +72,7 @@ public class AttendanceSectionService {
             assignment.setExcusedPoints(courseForm.getExcusedPoints());
             assignment.setAbsentPoints(courseForm.getAbsentPoints());
             assignmentRepository.save(assignment);
-        }
+
     }
 
     public void resetAttendanceAssignmentsForCourse(long canvasCourseId) {
@@ -112,16 +108,16 @@ public class AttendanceSectionService {
     /**
      * @throws RuntimeException if course does not exist or if the courseForm is null
      */
-    public void loadIntoForm(CourseConfigurationForm courseForm, long courseId) {
+    public void loadIntoForm(CourseConfigurationForm courseForm, long canvasSectionId) {
         Validate.notNull(courseForm, "courseForm must not be null");
 
-        List<AttendanceSection> sections = sectionRepository.findByCanvasCourseId(courseId);
-        if(CollectionUtils.isEmpty(sections)){
+        AttendanceSection attendanceSection = sectionRepository.findByCanvasSectionId(canvasSectionId);
+        if(attendanceSection == null){
             RuntimeException e = new RuntimeException("Cannot load data into courseForm for non-existent sections for this course");
-            throw new ContextedRuntimeException(e).addContextValue("courseId", courseId);
+            throw new ContextedRuntimeException(e).addContextValue("courseId", canvasSectionId);
         }
 
-        AttendanceAssignment attendanceAssignment = assignmentRepository.findByAttendanceSection(sections.get(0));
+        AttendanceAssignment attendanceAssignment = assignmentRepository.findByAttendanceSection(attendanceSection);
         if(attendanceAssignment == null) {
             attendanceAssignment = new AttendanceAssignment();
         }

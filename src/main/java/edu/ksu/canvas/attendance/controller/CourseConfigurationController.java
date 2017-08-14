@@ -13,6 +13,7 @@ import edu.ksu.canvas.attendance.services.ReportService;
 import edu.ksu.canvas.attendance.services.SynchronizationService;
 import edu.ksu.canvas.attendance.submitter.AssignmentSubmitter;
 import edu.ksu.canvas.attendance.submitter.CanvasAssignmentAssistant;
+import edu.ksu.canvas.attendance.util.DropDownOrganizer;
 import edu.ksu.lti.launch.exception.NoLtiSessionException;
 import org.apache.commons.validator.routines.LongValidator;
 import org.apache.log4j.Logger;
@@ -74,6 +75,7 @@ public class CourseConfigurationController extends AttendanceBaseController {
 
         Long validatedSectionId = LongValidator.getInstance().validate(sectionId);
         AttendanceSection selectedSection = validatedSectionId == null ? null : getSelectedSection(validatedSectionId);
+        List<AttendanceSection> sections = selectedSection == null ? new ArrayList<>() : sectionService.getSectionsByCourse(selectedSection.getCanvasCourseId());
         if(validatedSectionId == null || selectedSection == null) {
             return new ModelAndView("forward:roster");
         }
@@ -81,8 +83,17 @@ public class CourseConfigurationController extends AttendanceBaseController {
         ModelAndView page = new ModelAndView("courseConfiguration");
 
         CourseConfigurationForm courseConfigurationForm = new CourseConfigurationForm();
-        courseService.loadIntoForm(courseConfigurationForm, selectedSection.getCanvasCourseId());
-        sectionService.loadIntoForm(courseConfigurationForm, selectedSection.getCanvasCourseId());
+        courseConfigurationForm.setSectionId(selectedSection.getSectionId());
+
+        LOG.info("......................................1 Section ID: " + sectionId);
+        LOG.info("......................................2 Section ID: " + selectedSection.getCanvasSectionId());
+        courseService.loadIntoForm(courseConfigurationForm, selectedSection.getCanvasSectionId());
+
+
+
+        sectionService.loadIntoForm(courseConfigurationForm, selectedSection.getCanvasSectionId());
+
+        page.addObject("sectionList", DropDownOrganizer.sortWithSelectedSectionFirst(sections, sectionId));
         page.addObject("courseConfigurationForm", courseConfigurationForm);
         page.addObject("selectedSectionId", selectedSection.getCanvasSectionId());
         page.addObject("updateSuccessful", successful);
@@ -92,13 +103,20 @@ public class CourseConfigurationController extends AttendanceBaseController {
     @RequestMapping(value = "/{sectionId}/save", params = "saveCourseConfiguration", method = RequestMethod.POST)
     public ModelAndView saveCourseConfiguration(@PathVariable String sectionId, @ModelAttribute("courseConfigurationForm") @Valid CourseConfigurationForm classSetupForm, BindingResult bindingResult) throws NoLtiSessionException {
 
+        Long validatedSectionId = LongValidator.getInstance().validate(sectionId);
+        AttendanceSection selectedSection = validatedSectionId == null ? null : getSelectedSection(validatedSectionId);
+        List<AttendanceSection> sections = selectedSection == null ? new ArrayList<>() : sectionService.getSectionsByCourse(selectedSection.getCanvasCourseId());
+
         inputValidator.validate(classSetupForm, bindingResult);
         if (bindingResult.hasErrors()) {
             ModelAndView page = new ModelAndView("/courseConfiguration");
             List<String> errors = new ArrayList<>();
             bindingResult.getFieldErrors().forEach(error -> errors.add(error.getCode()));
+            bindingResult.getFieldErrors().forEach(error -> LOG.warn("Code: " + error.getCode() +
+                    "\n ToString: " + error.toString() + "\n Field: " + error.getField()));
             page.addObject("error", errors);
             page.addObject("selectedSectionId", sectionId);
+            page.addObject("sectionList", DropDownOrganizer.sortWithSelectedSectionFirst(sections, sectionId));
             return page;
         }
 
@@ -109,13 +127,14 @@ public class CourseConfigurationController extends AttendanceBaseController {
             bindingResult.getFieldErrors().forEach(error -> errors.add(error.getCode()));
             page.addObject("error", errors);
             page.addObject("selectedSectionId", sectionId);
+            page.addObject("sectionList", DropDownOrganizer.sortWithSelectedSectionFirst(sections, sectionId));
             return page;
         } else {
             LOG.info("eid: " + canvasService.getEid() + " is saving course settings for " + canvasService.getCourseId() + ", minutes: "
                     + classSetupForm.getTotalClassMinutes() + ", per session: " + classSetupForm.getDefaultMinutesPerSession());
 
-            courseService.save(classSetupForm, canvasService.getCourseId());
-            sectionService.save(classSetupForm, canvasService.getCourseId());
+            courseService.save(classSetupForm, selectedSection.getCanvasSectionId());
+            sectionService.save(classSetupForm, selectedSection.getCanvasSectionId());
             return new ModelAndView("forward:/courseConfiguration/" + sectionId + "?updateSuccessful=true");
         }
 
