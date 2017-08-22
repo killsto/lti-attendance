@@ -93,11 +93,19 @@ public class CourseConfigurationController extends AttendanceBaseController {
     @RequestMapping(value = "/{sectionId}/save", params = "saveCourseConfiguration", method = RequestMethod.POST)
     public ModelAndView saveCourseConfiguration(@PathVariable String sectionId, @ModelAttribute("courseConfigurationForm") @Valid CourseConfigurationForm classSetupForm, BindingResult bindingResult) throws NoLtiSessionException {
 
+        long courseId = canvasService.getCourseId();
         inputValidator.validate(classSetupForm, bindingResult);
         if (bindingResult.hasErrors()) {
             ModelAndView page = new ModelAndView("/courseConfiguration");
             List<String> errors = new ArrayList<>();
             bindingResult.getFieldErrors().forEach(error -> errors.add(error.getCode()));
+
+            CourseConfigurationForm courseConfigurationForm = new CourseConfigurationForm();
+            courseService.loadIntoForm(courseConfigurationForm, courseId);
+            sectionService.loadIntoForm(courseConfigurationForm, courseId);
+            courseConfigurationForm.setAllSections(sectionService.getSectionByCanvasCourseId(courseId));
+
+            page.addObject("courseConfigurationForm", courseConfigurationForm);
             page.addObject("error", errors);
             page.addObject("selectedSectionId", sectionId);
             return page;
@@ -108,15 +116,22 @@ public class CourseConfigurationController extends AttendanceBaseController {
             ModelAndView page = new ModelAndView("/courseConfiguration");
             List<String> errors = new ArrayList<>();
             bindingResult.getFieldErrors().forEach(error -> errors.add(error.getCode()));
+
+            CourseConfigurationForm courseConfigurationForm = new CourseConfigurationForm();
+            courseService.loadIntoForm(courseConfigurationForm, courseId);
+            sectionService.loadIntoForm(courseConfigurationForm, courseId);
+            courseConfigurationForm.setAllSections(sectionService.getSectionByCanvasCourseId(courseId));
+
+            page.addObject("courseConfigurationForm", courseConfigurationForm);
             page.addObject("error", errors);
             page.addObject("selectedSectionId", sectionId);
             return page;
         } else {
-            LOG.info("eid: " + canvasService.getEid() + " is saving course settings for " + canvasService.getCourseId() + ", minutes: "
+            LOG.info("eid: " + canvasService.getEid() + " is saving course settings for " + courseId + ", minutes: "
                     + classSetupForm.getTotalClassMinutes() + ", per session: " + classSetupForm.getDefaultMinutesPerSession());
 
-            courseService.save(classSetupForm, canvasService.getCourseId());
-            sectionService.save(classSetupForm, canvasService.getCourseId());
+            courseService.save(classSetupForm, courseId);
+            sectionService.save(classSetupForm, courseId);
             return new ModelAndView("forward:/courseConfiguration/" + sectionId + "?updateSuccessful=true");
         }
 
@@ -126,7 +141,7 @@ public class CourseConfigurationController extends AttendanceBaseController {
     public ModelAndView synchronizeWithCanvas(@PathVariable String sectionId) throws NoLtiSessionException {
         LOG.info("eid: " + canvasService.getEid() + " is forcing a synchronization with Canvas for Canvas Course ID: " + canvasService.getCourseId());
         synchronizationService.synchronize(canvasService.getCourseId());
-        
+
         ModelAndView page = new ModelAndView("forward:/courseConfiguration/" + sectionId);
         page.addObject("synchronizationSuccessful", true);
 
@@ -141,6 +156,7 @@ public class CourseConfigurationController extends AttendanceBaseController {
             ModelAndView page = new ModelAndView("/courseConfiguration");
             List<String> errors = new ArrayList<>();
             bindingResult.getFieldErrors().forEach(error -> errors.add(error.getCode()));
+            page.addObject("courseConfigurationForm", classSetupForm);
             page.addObject("error", errors);
             page.addObject("selectedSectionId", sectionId);
             return page;
@@ -151,6 +167,7 @@ public class CourseConfigurationController extends AttendanceBaseController {
             ModelAndView page = new ModelAndView("/courseConfiguration");
             List<String> errors = new ArrayList<>();
             bindingResult.getFieldErrors().forEach(error -> errors.add(error.getCode()));
+            page.addObject("courseConfigurationForm", classSetupForm);
             page.addObject("error", errors);
             page.addObject("selectedSectionId", sectionId);
             return page;
@@ -165,9 +182,14 @@ public class CourseConfigurationController extends AttendanceBaseController {
                     reportService.getSimpleAttendanceSummaryReport(sectionId) :
                     reportService.getAviationAttendanceSummaryReport(sectionId);
 
-            AttendanceAssignment assignmentConfigurationFromSetup = generateAssignmentFromClassSetupForm(classSetupForm);
+            List<AttendanceSection> sectionList = new ArrayList<>();
+            LOG.warn(classSetupForm);
+            if (!classSetupForm.getSectionsToGrade().isEmpty()){
+                classSetupForm.getSectionsToGrade().forEach(canvasSectionId -> sectionList.add(sectionService.getSectionInListById(courseId,canvasSectionId)));
+                sectionList.forEach(section -> section.getAttendanceAssignment().setStatus(AttendanceAssignment.Status.UNKNOWN));
+            }
             try {
-                assignmentSubmitter.submitCourseAttendances(isSimpleAttendance, summaryForSections, courseId, canvasService.getOauthToken(), assignmentConfigurationFromSetup);
+                assignmentSubmitter.submitCourseAttendances(isSimpleAttendance, summaryForSections, courseId, canvasService.getOauthToken(), sectionList);
                 page.addObject("pushingSuccessful", true);
             }
             catch (AttendanceAssignmentException e){
@@ -179,33 +201,27 @@ public class CourseConfigurationController extends AttendanceBaseController {
         }
     }
 
-    private AttendanceAssignment generateAssignmentFromClassSetupForm(CourseConfigurationForm classSetupForm) {
-        AttendanceAssignment assignmentConfigurationFromSetup = new AttendanceAssignment();
-        assignmentConfigurationFromSetup.setAssignmentName(classSetupForm.getAssignmentName());
-        assignmentConfigurationFromSetup.setAssignmentPoints(classSetupForm.getAssignmentPoints());
-        assignmentConfigurationFromSetup.setGradingOn(true);
-        assignmentConfigurationFromSetup.setPresentPoints(classSetupForm.getPresentPoints());
-        assignmentConfigurationFromSetup.setTardyPoints(classSetupForm.getTardyPoints());
-        assignmentConfigurationFromSetup.setExcusedPoints(classSetupForm.getExcusedPoints());
-        assignmentConfigurationFromSetup.setAbsentPoints(classSetupForm.getAbsentPoints());
-        return assignmentConfigurationFromSetup;
-    }
-
     @RequestMapping(value = "/{sectionId}/save", params = "deleteAssignment", method = RequestMethod.POST)
-    public ModelAndView deleteAttendanceAssignment(@PathVariable String sectionId) throws NoLtiSessionException {
+    public ModelAndView deleteAttendanceAssignment(@PathVariable String sectionId, @ModelAttribute("courseConfigurationForm") @Valid CourseConfigurationForm classSetupForm) throws NoLtiSessionException {
         LOG.info("eid: " + canvasService.getEid() + " is turning off grading feature and deleting the assignment from Canvas for section: " + sectionId);
         ModelAndView page = new ModelAndView("forward:/courseConfiguration/" + sectionId);
 
+        List<AttendanceSection> sectionList = new ArrayList<>();
+
+        for (Long canvasSectionId: classSetupForm.getSectionsToDelete()){
+            sectionList.add(sectionService.getSection(canvasSectionId));
+        }
+
         try {
 
-            assignmentAssistant.deleteAssignmentInCanvas(canvasService.getCourseId().longValue(), canvasService.getOauthToken());
+            assignmentAssistant.deleteAssignmentInCanvas(sectionList, canvasService.getOauthToken());
         } catch (Exception exception) {
             LOG.warn("The following error occurred when deleting the Assignment: " + exception);
             page.addObject("error", exception.getMessage());
             return page;
         }
 
-        sectionService.resetAttendanceAssignmentsForCourse(canvasService.getCourseId());
+        sectionService.resetAttendanceAssignmentsForCourse(sectionList);
         page.addObject("deleteSuccessful", true);
 
         return page;

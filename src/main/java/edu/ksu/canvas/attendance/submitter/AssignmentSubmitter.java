@@ -1,8 +1,10 @@
 package edu.ksu.canvas.attendance.submitter;
 
 
+import edu.ksu.canvas.attendance.entity.Attendance;
 import edu.ksu.canvas.attendance.entity.AttendanceAssignment;
 import edu.ksu.canvas.attendance.entity.AttendanceCourse;
+import edu.ksu.canvas.attendance.entity.AttendanceSection;
 import edu.ksu.canvas.attendance.exception.AttendanceAssignmentException;
 import edu.ksu.canvas.attendance.model.AttendanceSummaryModel;
 import edu.ksu.canvas.attendance.services.*;
@@ -54,16 +56,20 @@ public class AssignmentSubmitter {
      * @param summaryForSections
      */
     public void submitCourseAttendances(boolean isSimpleAttendance, List<AttendanceSummaryModel> summaryForSections, Long courseId,
-                                        OauthToken oauthToken, AttendanceAssignment assignmentConfigurationFromSetup) throws AttendanceAssignmentException{
+                                        OauthToken oauthToken, List<AttendanceSection> sectionsToGrade) throws AttendanceAssignmentException{
 
-        for (AttendanceSummaryModel sectionSummary : summaryForSections) {
+        for (AttendanceSection section: sectionsToGrade) {
+            for (AttendanceSummaryModel sectionSummary : summaryForSections){
+                LOG.warn(summaryForSections.size());
+                LOG.warn(sectionSummary);
+                if (sectionSummary.getSectionId() == section.getCanvasSectionId()){
+                    AttendanceAssignment attendanceAssignment = section.getAttendanceAssignment();
 
-            AttendanceAssignment attendanceAssignment = assignmentService.findBySection(sectionService.getSectionInListById(courseId, sectionSummary.getSectionId()));
+                    gradePushingValidation(courseId, section.getCanvasSectionId(), oauthToken, sectionSummary, attendanceAssignment);
 
-            gradePushingValidation(courseId, oauthToken, assignmentConfigurationFromSetup, sectionSummary, attendanceAssignment);
-
-            submitSectionAttendances(isSimpleAttendance, sectionSummary, attendanceAssignment, courseId, oauthToken);
-
+                    submitSectionAttendances(isSimpleAttendance, sectionSummary, attendanceAssignment, courseId, oauthToken);
+                }
+            }
         }
     }
 
@@ -72,26 +78,25 @@ public class AssignmentSubmitter {
      * canvas will be aligned to the data in the db. If in validation is determined that there is not canvas assignment
      * associated to the attendance assignment then a new canvas assignment will be created and associate to the attendance assignment.
      */
-    private void gradePushingValidation(Long courseId, OauthToken oauthToken, AttendanceAssignment assignmentConfigurationFromSetup,
-                                        AttendanceSummaryModel model, AttendanceAssignment attendanceAssignment) throws AttendanceAssignmentException{
+    private void gradePushingValidation(Long courseId, Long canvasSectionId, OauthToken oauthToken, AttendanceSummaryModel model,
+                                        AttendanceAssignment attendanceAssignment) throws AttendanceAssignmentException{
 
-        AttendanceAssignment validatingAssignment = assignmentValidator.validateConfigurationSetupExistence(model, attendanceAssignment);
-
-        if (validatingAssignment.getStatus() == AttendanceAssignment.Status.UNKNOWN){
-            validatingAssignment = assignmentValidator.validateAttendanceAssignment(courseId, validatingAssignment, canvasApiWrapperService, oauthToken);
+        if (attendanceAssignment.getStatus() == AttendanceAssignment.Status.UNKNOWN){
+            attendanceAssignment = assignmentValidator.validateAttendanceAssignment(courseId, attendanceAssignment, canvasApiWrapperService, oauthToken);
         }
-        if (validatingAssignment.getStatus() == AttendanceAssignment.Status.UNKNOWN){
-            validatingAssignment = assignmentValidator.validateCanvasAssignment(assignmentConfigurationFromSetup, courseId, validatingAssignment, canvasApiWrapperService, oauthToken);
+        if (attendanceAssignment.getStatus() == AttendanceAssignment.Status.UNKNOWN){
+            attendanceAssignment = assignmentValidator.validateCanvasAssignment(courseId, attendanceAssignment, canvasApiWrapperService, oauthToken);
         }
-        if (validatingAssignment.getStatus() == AttendanceAssignment.Status.CANVAS_AND_DB_DISCREPANCY){
-            canvasAssignmentAssistant.editAssignmentInCanvas(courseId, validatingAssignment, oauthToken);
+        if (attendanceAssignment.getStatus() == AttendanceAssignment.Status.CANVAS_AND_DB_DISCREPANCY){
+            canvasAssignmentAssistant.editAssignmentInCanvas(courseId, attendanceAssignment, oauthToken);
         }
-        else if (validatingAssignment.getStatus() == AttendanceAssignment.Status.NOT_LINKED_TO_CANVAS){
-            Assignment assignment = canvasAssignmentAssistant.createAssignmentInCanvas(courseId, validatingAssignment, oauthToken);
+        else if (attendanceAssignment.getStatus() == AttendanceAssignment.Status.NOT_LINKED_TO_CANVAS){
+            LOG.warn("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
+            Assignment assignment = canvasAssignmentAssistant.createAssignmentInCanvas(courseId, canvasSectionId, attendanceAssignment, oauthToken);
             canvasApiWrapperService.createAssignmentOverride(oauthToken, Integer.valueOf(assignment.getId()), (int)model.getSectionId(), courseId.toString());
             canvasApiWrapperService.setAssignmentOnlyVisibleToOverrides(oauthToken, courseId.toString(), assignment);
         }
-        validatingAssignment.setStatus(AttendanceAssignment.Status.OKAY);
+        attendanceAssignment.setStatus(AttendanceAssignment.Status.OKAY);
 
     }
 

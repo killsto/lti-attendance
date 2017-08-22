@@ -1,5 +1,6 @@
 package edu.ksu.canvas.attendance.services;
 
+import edu.ksu.canvas.attendance.entity.Attendance;
 import edu.ksu.canvas.attendance.entity.AttendanceAssignment;
 import edu.ksu.canvas.attendance.entity.AttendanceSection;
 import edu.ksu.canvas.attendance.form.CourseConfigurationForm;
@@ -7,10 +8,12 @@ import edu.ksu.canvas.attendance.repository.AttendanceAssignmentRepository;
 import edu.ksu.canvas.attendance.repository.AttendanceSectionRepository;
 import org.apache.commons.lang3.Validate;
 import org.apache.commons.lang3.exception.ContextedRuntimeException;
+import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
+import sun.rmi.runtime.Log;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -18,6 +21,9 @@ import java.util.List;
 
 @Component
 public class AttendanceSectionService {
+
+    private static final Logger LOG = Logger.getLogger(AttendanceSectionService.class);
+
 
     @Autowired
     private AttendanceSectionRepository sectionRepository;
@@ -49,46 +55,45 @@ public class AttendanceSectionService {
      */
     public void save(CourseConfigurationForm courseForm, long canvasCourseId) {
         Validate.notNull(courseForm, "courseForm must not be null");
-
-        List<AttendanceSection> sections = sectionRepository.findByCanvasCourseId(canvasCourseId);
-        if(CollectionUtils.isEmpty(sections)) {
+        List<AttendanceSection> sectionsToSave = new ArrayList<>();
+        LOG.warn(courseForm.getSectionsToSave());
+        for(Long sectionId: courseForm.getSectionsToSave()){
+            sectionsToSave.add(sectionRepository.findByCanvasSectionId(sectionId));
+        }
+        if (sectionsToSave.isEmpty()){
+            return;
+        }
+        if(CollectionUtils.isEmpty(sectionsToSave)) {
             RuntimeException e = new RuntimeException("Cannot load data into courseForm for non-existent sections for this course");
             throw new ContextedRuntimeException(e).addContextValue("courseId", canvasCourseId);
         }
-
         List<AttendanceAssignment> attendanceAssignments = new ArrayList<>();
-        for(AttendanceSection section : sections) {
+        for(AttendanceSection section : sectionsToSave) {
             AttendanceAssignment assignment = assignmentRepository.findByAttendanceSection(section);
             if(assignment == null) {
                 assignment = new AttendanceAssignment();
                 assignment.setAttendanceSection(section);
             }
-
+            section.setAttendanceAssignment(assignment);
             attendanceAssignments.add(assignment);
         }
 
         for(AttendanceAssignment assignment : attendanceAssignments) {
             assignment.setAssignmentName(courseForm.getAssignmentName());
-            assignment.setGradingOn(courseForm.getGradingOn());
             assignment.setAssignmentPoints(courseForm.getAssignmentPoints());
             assignment.setPresentPoints(courseForm.getPresentPoints());
             assignment.setTardyPoints(courseForm.getTardyPoints());
             assignment.setExcusedPoints(courseForm.getExcusedPoints());
             assignment.setAbsentPoints(courseForm.getAbsentPoints());
             assignmentRepository.save(assignment);
+
         }
     }
 
-    public void resetAttendanceAssignmentsForCourse(long canvasCourseId) {
-
-        List<AttendanceSection> sections = sectionRepository.findByCanvasCourseId(canvasCourseId);
-        if(CollectionUtils.isEmpty(sections)) {
-            RuntimeException e = new RuntimeException("Cannot load data into courseForm for non-existent sections for this course");
-            throw new ContextedRuntimeException(e).addContextValue("courseId", canvasCourseId);
-        }
+    public void resetAttendanceAssignmentsForCourse(List<AttendanceSection> sectionList) {
 
         List<AttendanceAssignment> attendanceAssignments = new ArrayList<>();
-        for(AttendanceSection section : sections) {
+        for(AttendanceSection section : sectionList) {
             AttendanceAssignment assignment = assignmentRepository.findByAttendanceSection(section);
             if(assignment != null) {
                 attendanceAssignments.add(assignment);
@@ -96,7 +101,6 @@ public class AttendanceSectionService {
         }
 
         for (AttendanceAssignment assignment: attendanceAssignments) {
-            assignment.setGradingOn(false);
             assignment.setCanvasAssignmentId(null);
             assignment.setAssignmentName(null);
             assignment.setAssignmentPoints(null);
@@ -132,7 +136,6 @@ public class AttendanceSectionService {
         courseForm.setExcusedPoints(String.valueOf(attendanceAssignment.getExcusedPoints() == null ? 0 : attendanceAssignment.getExcusedPoints()));
         courseForm.setTardyPoints(String.valueOf(attendanceAssignment.getTardyPoints() == null ? 0 : attendanceAssignment.getTardyPoints()));
         courseForm.setAbsentPoints(String.valueOf(attendanceAssignment.getAbsentPoints() == null ? 0 : attendanceAssignment.getAbsentPoints()));
-        courseForm.setGradingOn(attendanceAssignment.getGradingOn());
     }
 
     public AttendanceSection getSectionInListById(Long canvasCourseId, Long sectionId) {

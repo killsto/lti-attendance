@@ -37,8 +37,8 @@ public class AttendanceAssignment implements Serializable {
     @Column(name = "absent_points")
     private String absentPoints;
 
-    @Column(name = "grading_on", nullable = false)
-    private boolean gradingOn = false;
+//    @Column(name = "grading_on", nullable = false)
+//    private boolean gradingOn = false;
 
     @Column(name = "assignment_name")
     private String assignmentName;
@@ -118,14 +118,6 @@ public class AttendanceAssignment implements Serializable {
         this.absentPoints = absentPoints;
     }
 
-    public boolean getGradingOn() {
-        return gradingOn;
-    }
-
-    public void setGradingOn(boolean gradingOn) {
-        this.gradingOn = gradingOn;
-    }
-
     public String getAssignmentName() {
         return assignmentName;
     }
@@ -150,6 +142,6 @@ public class AttendanceAssignment implements Serializable {
                 (attendanceSection == null? null : attendanceSection.getSectionId()) + ", canvasAssignmentId="
                 + canvasAssignmentId + ", assignmentPoints=" + assignmentPoints + ", presentPoints=" + presentPoints
                 + ", tardyPoints=" + tardyPoints + ", excusedPoints=" + excusedPoints + ", absentPoints=" + absentPoints
-                + ", gradingOn=" + gradingOn + ", assignmentName=" + assignmentName +"]";
+                + ", assignmentName=" + assignmentName +"]";
     }
 }

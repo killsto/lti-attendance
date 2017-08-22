@@ -68,6 +68,7 @@
             <table class="table table-bordered sectionTable" style="display:none" id="${summaryForSection.sectionId}">
                 <tr>
                     <th class="text-center">Name</th>
+                    <th class="text-center">Total Classes Present</th>
                     <th class="text-center">Total Classes Absent</th>
                     <th class="text-center">Total Classes Excused</th>
                     <th class="text-center">Total Classes Tardy</th>
@@ -78,6 +79,7 @@
                         <td class="${attendanceSummaryEntry.dropped ? 'dropped' : ''}">
                             <span><a href="${context}/studentSummary/${attendanceSummaryEntry.sectionId}/${attendanceSummaryEntry.studentId}">${attendanceSummaryEntry.studentName}</a></span>
                         </td>
+                        <td class="text-center">${attendanceSummaryEntry.totalClassesPresent}</td>
                         <td class="text-center">${attendanceSummaryEntry.totalClassesMissed}</td>
                         <td class="text-center">${attendanceSummaryEntry.totalClassesExcused}</td>
                         <td class="text-center">${attendanceSummaryEntry.totalClassesTardy}</td>

@@ -134,6 +134,26 @@ public class AttendanceSummaryModel {
         public String getSisUserId() {
             return SisUserId;
         }
+
+        @Override
+        public String toString() {
+            return "Entry{" +
+                    "courseId=" + courseId +
+                    ", sectionId=" + sectionId +
+                    ", studentId=" + studentId +
+                    ", SisUserId='" + SisUserId + '\'' +
+                    ", studentName='" + studentName + '\'' +
+                    ", sumMinutesMadeup=" + sumMinutesMadeup +
+                    ", remainingMinutesMadeup=" + remainingMinutesMadeup +
+                    ", sumMinutesMissed=" + sumMinutesMissed +
+                    ", percentCourseMissed=" + percentCourseMissed +
+                    ", dropped=" + dropped +
+                    ", totalClassesMissed=" + totalClassesMissed +
+                    ", totalClassesExcused=" + totalClassesExcused +
+                    ", totalClassesTardy=" + totalClassesTardy +
+                    ", totalClassesPresent=" + totalClassesPresent +
+                    '}';
+        }
     }
 
 
@@ -154,5 +174,6 @@ public class AttendanceSummaryModel {
     public List<Entry> getEntries() {
         return entries;
     }
+
 
 }

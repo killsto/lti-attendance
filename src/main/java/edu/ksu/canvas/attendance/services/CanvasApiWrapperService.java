@@ -10,6 +10,7 @@ import edu.ksu.canvas.model.Enrollment;
 import edu.ksu.canvas.model.Progress;
 import edu.ksu.canvas.model.Section;
 import edu.ksu.canvas.model.assignment.Assignment;
+import edu.ksu.canvas.model.assignment.AssignmentGroup;
 import edu.ksu.canvas.model.assignment.AssignmentOverride;
 import edu.ksu.canvas.oauth.OauthToken;
 import edu.ksu.canvas.requestOptions.GetEnrollmentOptions;
@@ -201,6 +202,22 @@ public class CanvasApiWrapperService {
         } catch(IOException | CanvasException e) {
             LOG.error("Error setting visible to overrides", e);
         }
+    }
+
+    public List<AssignmentGroup> listAssignmentGroups(String courseId, OauthToken oauthToken) throws IOException {
+        AssignmentGroupReader reader = canvasApiFactory.getReader(AssignmentGroupReader.class, oauthToken);
+        return reader.listAssignmentGroup(courseId);
+    }
+
+    public AssignmentGroup createAssignmentGroup(String courseId, OauthToken oauthToken) throws IOException {
+        AssignmentGroupWriter writer = canvasApiFactory.getWriter(AssignmentGroupWriter.class, oauthToken);
+        AssignmentGroup group = new AssignmentGroup();
+        group.setName("Attendance");
+        Optional<AssignmentGroup> group1 = writer.createAssignmenGroup(courseId, group);
+        if (group1.isPresent()){
+            return group1.get();
+        }
+        else return null;
     }
 
     class EnrollmentOptionsFactory {

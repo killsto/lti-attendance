@@ -94,6 +94,8 @@
 
     <h3>Setup</h3>
     <br/>
+    <p> Check out our new <strong><a id="helpLink2" href="${context}/help/${selectedSectionId}">help section</a></strong> for a
+        quick guide on how to get the most out of Attendance.</p>
     <div class="col-lg-3">
         <label for="simpleAttendance">
             <form:radiobutton path="simpleAttendance" id="simpleAttendance" value="true"/> Use Simple Attendance (non-minute based)
@@ -121,20 +123,12 @@
                 </div>
             </fieldset>
         </div>
-        <br/>
         <label for="showNotesToStudents">
             <form:checkbox path="showNotesToStudents" id="showNotesToStudents"/> Show Notes entered on Class Roster page to students
         </label>
-        <br/>
-            <label>
-                <form:checkbox  path ="gradingOn" id="conversionConfirm"/> Convert Attendance to Assignment
-            </label>
-        <br/>
 
-        <div class = "container-fluid ${courseConfigurationForm.gradingOn? '' : 'hidden'}" id="conversionConfig" >
-            <br/>
-            <p> Check out our new <a id="helpLink2" href="${context}/help/${selectedSectionId}">help section</a> for a
-            quick guide on how to get the best out of Attendance.</p>
+
+        <div class = "container-fluid" id="conversionConfig" >
             <br/>
             <div class="col-md-2 col-md-offset-0">
                 <label for="assignmentName">
@@ -187,10 +181,22 @@
         </div>
 
 
-        <button id="saveCourseConfiguration" name="saveCourseConfiguration" class="hovering-purple-button pull-left buffer-top" type="button" onclick="$('#sectionSelectForSave').modal('show')">
+        <button id="saveCourseConfiguration" name="saveCourseConfiguration" class="hovering-purple-button pull-left
+                buffer-top" type="button" onclick="$('#sectionSelectForSave').modal('show')">
             Save Setup
         </button>
-        <button id="pushConfirmation" name="pushConfirmation" class="hovering-purple-button pull-right buffer-top ${courseConfigurationForm.gradingOn? '' : 'hidden'}" type="button" onclick="$('#sectionSelect').modal('show')">
+
+        <button id="setupSummary" name="setupSummary" class="hovering-purple-button buffer-top buffer-left " type="button" onclick="$('#savedSetupView').modal('show')">
+            View Saved Setups
+        </button>
+
+        <button id="deleteAssignments" name="deleteAssignments" class="hovering-purple-button buffer-top buffer-left " type="button" onclick="$('#deleteModal').modal('show')">
+            Delete Assignments
+        </button>
+
+        <button id="pushConfirmation" name="pushConfirmation" class=" ${error == null? 'hovering-purple-button':'button_disabled'}
+                pull-right buffer-top" type="button"
+                ${error == null? '':'disabled'} onclick="$('#sectionSelect').modal('show')">
             Push Attendance to Gradebook
         </button>
     </div>
@@ -204,7 +210,14 @@
                     <h4 class="modal-title">Deletion Confirmation</h4>
                 </div>
                 <div class="modal-body">
-                    Turning off the grading feature will delete the Attendance Assignment from Canvas. Do you want to continue?
+                    <div class="alert alert-danger"><p>Select which Assignments to delete from Canvas:</p>
+                    </div>
+                    <c:forEach items="${courseConfigurationForm.allSections}" var="section">
+                        <br>
+                        <form:checkbox disabled="${section.attendanceAssignment.assignmentName != null ? '': 'true'}"
+                                       path="sectionsToDelete" id="${section.canvasSectionId}" value="${section.canvasSectionId}"
+                                       name="deleteList"/> ${section.name}
+                    </c:forEach>
                 </div>
                 <div class="modal-footer">
                     <button id="deleteAssignment" name="deleteAssignment" class="confirm btn btn-primary" type="button" onclick="submitDeleteForm()">
@@ -230,12 +243,61 @@
                     </div>
                         <c:forEach items="${courseConfigurationForm.allSections}" var="section">
                             <br>
-                            <form:checkbox path="sectionsToGrade" id="${section.canvasSectionId}" value="${section.canvasSectionId}"/> ${section.name}
+                                <form:checkbox disabled="${section.attendanceAssignment.assignmentName != null ? '': 'true'}"
+                                               path="sectionsToGrade" id="${section.canvasSectionId}" value="${section.canvasSectionId}"
+                                               name="pushList"/> ${section.name}
                         </c:forEach>
                 </div>
                 <div class="modal-footer">
                     <button id="sectionSubmit" name="sectionSubmit" class="confirm btn btn-primary" type="button" onclick="submitPushForm();">
                         OK
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="confirmation-modal modal fade in" id = "savedSetupView">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title">Saved Setups</h4>
+                </div>
+                <div class="modal-body">
+                    <table class="table table-bordered">
+
+                        <thead>
+                        <tr>
+                            <th class="col-md-3">Assignment Name</th>
+                            <th class="col-md-3">Total Points</th>
+                            <th class="col-md-4">Present Percentage</th>
+                            <th class="col-md-4">Tardy Percentage</th>
+                            <th class="col-md-4">Absent Percentage</th>
+                            <th class="col-md-4">Excused Percentage</th>
+                            <th class="col-md-4">Associated Section</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <c:forEach items="${courseConfigurationForm.allSections}" var="section">
+                            <c:if test="${section.attendanceAssignment.assignmentName != null}">
+                                <tr>
+                                    <td class="col-md-3">${section.attendanceAssignment.assignmentName}</td>
+                                    <td class="col-md-3">${section.attendanceAssignment.assignmentPoints}</td>
+                                    <td class="col-md-3">${section.attendanceAssignment.presentPoints}</td>
+                                    <td class="col-md-3">${section.attendanceAssignment.tardyPoints}</td>
+                                    <td class="col-md-3">${section.attendanceAssignment.absentPoints}</td>
+                                    <td class="col-md-3">${section.attendanceAssignment.excusedPoints}</td>
+                                    <td class="col-md-3">${section.name}</td>
+                                </tr>
+                            </c:if>
+                        </c:forEach>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="modal-footer">
+                    <button id="closeSavedSetupView" name="closeSavedSetupView" class="close btn btn-primary" type="button" onclick="$('#savedSetupView').modal('hide');">
+                        Close
                     </button>
                 </div>
             </div>
@@ -250,11 +312,13 @@
                     <h4 class="modal-title">Select which Sections this setup needs to be saved for:</h4>
                 </div>
                 <div class="modal-body">
-                    <div class="alert alert-warning"><p>Please allow a few minutes for Canvas to update the gradebook.</p>
-                    </div>
+                    <input type="checkbox" id="selectSaved" name="selectSaved" onclick="toggle(this, 'savedList')" />
+                    <label for="selectSaved">Select All</label>
+                    <br>
                     <c:forEach items="${courseConfigurationForm.allSections}" var="section">
                         <br>
-                        <form:checkbox path="sectionsToSave" id="${section.canvasSectionId}" value="${section.canvasSectionId}"/> ${section.name}
+                        <form:checkbox path="sectionsToSave" id="${section.canvasSectionId}" value="${section.canvasSectionId}"
+                                       name="savedList"/> ${section.name}
                     </c:forEach>
                 </div>
                 <div class="modal-footer">
@@ -282,18 +346,6 @@
             }
         });
 
-        $('#conversionConfirm').change(function(){
-            if (this.checked) {
-                $('#pushConfirmation').removeClass('hidden hovering-purple-button pull-right buffer-top')
-                                      .attr('disabled', 'disabled')
-                                      .addClass('button_disabled pull-right buffer-top');
-                $('#conversionConfig').removeClass('hidden');
-            } else {
-                $('#pushConfirmation').addClass('hidden');
-                $('#conversionConfig').addClass('hidden');
-                $('#deleteModal').modal('show');
-            }
-        });
 
         $("#assignmentName, #assignmentPoints, #presentPoints, #tardyPoints, #absentPoints, #excusedPoints").keyup(function () {
             disablePushConfirmation();
@@ -331,6 +383,19 @@
             $('#deleteAssignment').attr("disabled", "disabled");
             $('#cancelDelete').attr("disabled", "disabled");
         }
+
+        function toggle(source, name){
+            console.log(source);
+            console.log(name);
+            console.log('------------------------------------------------------');
+            var checkboxes = document.getElementsByName("savedList");
+            console.log(checkboxes.length);
+            for(var i=0; i < checkboxes.length; i++){
+                console.log("ayy");
+                checkboxes[i].checked = source.checked;
+            }
+        }
+
 
 
     </script>

@@ -32,7 +32,6 @@ public class CourseConfigurationForm {
 
     private String absentPoints;
 
-    private Boolean gradingOn;
 
     private String assignmentName;
 
@@ -41,6 +40,8 @@ public class CourseConfigurationForm {
     private List<Long> sectionsToGrade = new ArrayList<>();
 
     private List<Long> sectionsToSave = new ArrayList<>();
+
+    private List<Long> sectionsToDelete = new ArrayList<>();
 
     public int getTotalClassMinutes() {
         return totalClassMinutes;
@@ -116,14 +117,6 @@ public class CourseConfigurationForm {
 
     public void setAbsentPoints(String absentPoints) { this.absentPoints = absentPoints; }
 
-    public Boolean getGradingOn() {
-        return gradingOn;
-    }
-
-    public void setGradingOn(Boolean gradingOn) {
-        this.gradingOn = gradingOn;
-    }
-
     public String getAssignmentName() {
         return assignmentName;
     }
@@ -153,4 +146,11 @@ public class CourseConfigurationForm {
 
     public void setSectionsToSave(List<Long> sectionsToSave) { this.sectionsToSave = sectionsToSave; }
 
+    public List<Long> getSectionsToDelete() {
+        return sectionsToDelete;
+    }
+
+    public void setSectionsToDelete(List<Long> sectionsToDelete) {
+        this.sectionsToDelete = sectionsToDelete;
+    }
 }

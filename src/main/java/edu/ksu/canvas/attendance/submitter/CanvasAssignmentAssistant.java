@@ -34,6 +34,9 @@ public class CanvasAssignmentAssistant {
     private AttendanceAssignmentService assignmentService;
 
     @Autowired
+    private AttendanceSectionService sectionService;
+
+    @Autowired
     private AttendanceSectionService attendanceSectionService;
 
     @Autowired
@@ -42,7 +45,7 @@ public class CanvasAssignmentAssistant {
     @Autowired
     private CanvasApiWrapperService canvasApiWrapperService;
 
-    public Assignment createAssignmentInCanvas(Long courseId, AttendanceAssignment attendanceAssignment, OauthToken oauthToken) throws AttendanceAssignmentException {
+    public Assignment createAssignmentInCanvas(Long courseId, Long canvasSectionId, AttendanceAssignment attendanceAssignment, OauthToken oauthToken) throws AttendanceAssignmentException {
         Optional<Assignment> canvasAssignmentOptional;
         Assignment assignment = generateCanvasAssignment(courseId, attendanceAssignment);
         try {
@@ -58,7 +61,7 @@ public class CanvasAssignmentAssistant {
         }
         Assignment canvasAssignment = canvasAssignmentOptional.get();
         LOG.info("Created canvas assignment: " + canvasAssignment.getId());
-        saveCanvasAssignmentId(courseId, canvasAssignment);
+        saveCanvasAssignmentId(canvasSectionId, canvasAssignment);
         return canvasAssignment;
     }
 
@@ -78,13 +81,12 @@ public class CanvasAssignmentAssistant {
      * This works this way because for the user this works in the course level. But in the back-end
      * this works section based.
      */
-    private void saveCanvasAssignmentId(Long courseId, Assignment canvasAssignment) {
-        List<AttendanceSection> sectionList = attendanceSectionService.getSectionsByCourse(courseId);
-        for(AttendanceSection section: sectionList) {
-            AttendanceAssignment attendanceAssignment = assignmentService.findBySection(section);
-            attendanceAssignment.setCanvasAssignmentId(Long.valueOf(canvasAssignment.getId()));
-            assignmentRepository.save(attendanceAssignment);
-        }
+    private void saveCanvasAssignmentId(Long canvasSectionId, Assignment canvasAssignment) {
+        AttendanceAssignment attendanceAssignment = sectionService.getSection(canvasSectionId).getAttendanceAssignment();
+        LOG.warn(attendanceAssignment);
+        attendanceAssignment.setCanvasAssignmentId(Long.valueOf(canvasAssignment.getId()));
+        assignmentRepository.save(attendanceAssignment);
+
     }
 
 
@@ -115,29 +117,26 @@ public class CanvasAssignmentAssistant {
         LOG.info("Canvas assignment edited based on information in the section configuration.");
     }
 
-    public void deleteAssignmentInCanvas(Long canvasCourseId, OauthToken oauthToken) throws AttendanceAssignmentException{
+    public void deleteAssignmentInCanvas(List<AttendanceSection> sectionList, OauthToken oauthToken) throws AttendanceAssignmentException{
 
-        List<AttendanceSection> sections = attendanceSectionService.getSectionByCanvasCourseId(canvasCourseId);
-        if(CollectionUtils.isEmpty(sections)) {
-            throw new AttendanceAssignmentException(AttendanceAssignmentException.Error.NON_EXISTENT_SECTION_ERROR);
+        for (AttendanceSection section: sectionList) {
+            AttendanceAssignment assignment = assignmentRepository.findByAttendanceSection(section);
+
+            if (assignment == null) {
+                LOG.error("Attendance assignment not found for section: " + section.getName());
+                return;
+            } else if (assignment.getCanvasAssignmentId() == null) {
+                LOG.info("No Canvas assignment associated to Attendance assignment to be deleted for section: " + section.getName());
+                return;
+            }
+
+            try {
+                canvasApiWrapperService.deleteAssignment(section.getCanvasCourseId().toString(), assignment.getCanvasAssignmentId().toString(), oauthToken);
+            } catch (IOException e) {
+                LOG.error("Error while deleting canvas assignment: " + assignment.getCanvasAssignmentId(), e);
+                throw new AttendanceAssignmentException(AttendanceAssignmentException.Error.DELETION_ERROR);
+            }
+            LOG.info("Canvas assignment " + assignment.getCanvasAssignmentId() + " was successfully deleted.");
         }
-
-        AttendanceAssignment assignment = assignmentRepository.findByAttendanceSection(sections.get(0));
-
-        if(assignment == null) {
-            LOG.error("Attendance assignment not found for section: " + sections.get(0).getName());
-            return;
-        } else if (assignment.getCanvasAssignmentId() == null) {
-            LOG.info("No Canvas assignment associated to Attendance assignment  to be deleted for section: " + sections.get(0).getName());
-            return;
-        }
-
-        try {
-            canvasApiWrapperService.deleteAssignment(canvasCourseId.toString(), assignment.getCanvasAssignmentId().toString(), oauthToken);
-        } catch (IOException e) {
-            LOG.error("Error while deleting canvas assignment: " + assignment.getCanvasAssignmentId(), e);
-            throw new AttendanceAssignmentException(AttendanceAssignmentException.Error.DELETION_ERROR);
-        }
-        LOG.info("Canvas assignment " + assignment.getCanvasAssignmentId() + " was successfully deleted.");
     }
 }
