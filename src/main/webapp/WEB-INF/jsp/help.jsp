@@ -60,17 +60,20 @@
                 <img src="${context}/img/Setup.png" border="5">
                 <hr>
                 <p>Before you can push a section's attendance to the Canvas gradebook, a Setup must be associated with
-                the section. The Setup consists of the three fields that open up when the "Convert Attendance to
-                Assignment" box is checked: the <em>Assignment Name </em>, the <em>Total Points</em>, and the
-                <em>Attendance Weights</em> (pictured above).</p>
+                the section. The Setup consists of three fields: the <em>Assignment Name </em>, the <em>Total Points</em>,
+                and the <em>Attendance Weights</em> (pictured above).</p>
                 <p>Each Setup is assigned to a section or a list of sections that you choose from your course. For
                 example, an instructor has 2 recitations and a lab in his course. He'd like to grade his students based
                 on their attendance in both of the recitations, but not in the lecture. After filling out the
                 required fields on the Course Setup page, he can hit the "Save Setup" button and select his two
                 recitations. The courses have now been properly set up and the instructor can now push his Attendance
                 records to Canvas to create an Attendance Assignment.</p>
+                <p>To view any previously constructed Setups, click on the "View Saved Setups" button. Similarly, the
+                "Delete Assignments" button will let you remove Attendance Assignments from your gradebook. Note that
+                this will also delete the Setup associated with the Assignment.</p>
                 <p><strong>NOTE:</strong> If you change any of the required fields on the Setup page, you will need to
-                save the setup again before pushing to the Canvas Gradebook.</p>
+                save the setup again to apply the changes. If these are not saved before pushing to the Canvas Gradebook
+                the last saved setup for a section will be used.</p>
             </div>
         </div>
     </div>
@@ -176,10 +179,13 @@
                 <p>After pushing grades out to Canvas you will have one assignment for every section you selected when pushing
                 the grades. Each assignment will automatically be assigned to its associated section and automatically published.
                 To help with visibility and organization, the Attendance tool will automatically pin the name of the
-                associated section to the Assignment name. Though they are viewable in the Assignments tab, <strong>DO
-                NOT</strong> edit the assignments within the Assignments tab, instead using the Attendance tool.</p>
+                associated section to the Assignment name.</p>
+                <p>This is a single Assignment that reflects the attendance records with an Assignment Score. Any changes
+                to the Attendance Assignment Name, Attendance Weights, or Total Points will be updated in the single
+                assignment when you select Push Assignment to Canvas from the K-State Attendance tool. <strong>DO NOT
+                edit the Attendance Assignment Name or Total Points in the Assignment tool.</strong></p>
                 <p>The Grades tab in Canvas will display all attendance assignments as regular assignments that have been
-                assigned only to their relative sections.
+                assigned only to their relative sections.</p>
             </div>
         </div>
     </div>

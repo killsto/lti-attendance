@@ -94,8 +94,9 @@
 
     <h3>Setup</h3>
     <br/>
-    <p> Check out our new <strong><a id="helpLink2" href="${context}/help/${selectedSectionId}">help section</a></strong> for a
-        quick guide on how to get the most out of Attendance.</p>
+    <p> <strong>Attendance has changed.</strong></p>
+    <p>Check out our new <strong><a id="helpLink2" href="${context}/help/${selectedSectionId}">help section</a></strong> for a
+    quick guide on how to get the most out of Attendance.</p>
     <div class="col-lg-3">
         <label for="simpleAttendance">
             <form:radiobutton path="simpleAttendance" id="simpleAttendance" value="true"/> Use Simple Attendance (non-minute based)
@@ -212,11 +213,13 @@
                 <div class="modal-body">
                     <div class="alert alert-danger"><p>Select which Assignments to delete from Canvas:</p>
                     </div>
+                    <input type="checkbox" id="selectSaved" name="selectSaved" onclick="toggle(this, 'sectionsToDelete')" />
+                    <label for="selectSaved">Select All</label>
                     <c:forEach items="${courseConfigurationForm.allSections}" var="section">
                         <br>
                         <form:checkbox disabled="${section.attendanceAssignment.assignmentName != null ? '': 'true'}"
                                        path="sectionsToDelete" id="${section.canvasSectionId}" value="${section.canvasSectionId}"
-                                       name="deleteList"/> ${section.name}
+                                       name="sectionsToDelete"/> ${section.name}
                     </c:forEach>
                 </div>
                 <div class="modal-footer">
@@ -241,11 +244,13 @@
                 <div class="modal-body">
                     <div class="alert alert-warning"><p>Please allow a few minutes for Canvas to update the gradebook.</p>
                     </div>
+                    <input type="checkbox" id="selectSaved" name="selectSaved" onclick="toggle(this, 'sectionsToGrade')" />
+                    <label for="selectSaved">Select All</label>
                         <c:forEach items="${courseConfigurationForm.allSections}" var="section">
                             <br>
                                 <form:checkbox disabled="${section.attendanceAssignment.assignmentName != null ? '': 'true'}"
                                                path="sectionsToGrade" id="${section.canvasSectionId}" value="${section.canvasSectionId}"
-                                               name="pushList"/> ${section.name}
+                                               name="sectionsToGrade"/> ${section.name}
                         </c:forEach>
                 </div>
                 <div class="modal-footer">
@@ -312,13 +317,13 @@
                     <h4 class="modal-title">Select which Sections this setup needs to be saved for:</h4>
                 </div>
                 <div class="modal-body">
-                    <input type="checkbox" id="selectSaved" name="selectSaved" onclick="toggle(this, 'savedList')" />
+                    <input type="checkbox" id="selectSaved" name="selectSaved" onclick="toggle(this, 'sectionsToSave')" />
                     <label for="selectSaved">Select All</label>
                     <br>
                     <c:forEach items="${courseConfigurationForm.allSections}" var="section">
                         <br>
                         <form:checkbox path="sectionsToSave" id="${section.canvasSectionId}" value="${section.canvasSectionId}"
-                                       name="savedList"/> ${section.name}
+                                       name="sectionsToSave"/> ${section.name}
                     </c:forEach>
                 </div>
                 <div class="modal-footer">
@@ -385,14 +390,11 @@
         }
 
         function toggle(source, name){
-            console.log(source);
-            console.log(name);
-            console.log('------------------------------------------------------');
-            var checkboxes = document.getElementsByName("savedList");
-            console.log(checkboxes.length);
+            var checkboxes = document.getElementsByName(name);
             for(var i=0; i < checkboxes.length; i++){
-                console.log("ayy");
-                checkboxes[i].checked = source.checked;
+                if (checkboxes[i].disabled != true) {
+                    checkboxes[i].checked = source.checked;
+                }
             }
         }
 

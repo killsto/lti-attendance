@@ -24,6 +24,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 
 import javax.validation.Valid;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -192,7 +193,7 @@ public class CourseConfigurationController extends AttendanceBaseController {
                 assignmentSubmitter.submitCourseAttendances(isSimpleAttendance, summaryForSections, courseId, canvasService.getOauthToken(), sectionList);
                 page.addObject("pushingSuccessful", true);
             }
-            catch (AttendanceAssignmentException e){
+            catch (AttendanceAssignmentException | IOException e){
                 LOG.warn("The following error occurred when submitting the Assignment: " + e);
                 page.addObject("error", e.getMessage());
             }

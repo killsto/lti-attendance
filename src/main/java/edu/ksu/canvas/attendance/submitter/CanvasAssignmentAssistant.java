@@ -25,10 +25,6 @@ import java.util.Optional;
 public class CanvasAssignmentAssistant {
 
     private static final Logger LOG = Logger.getLogger(CanvasAssignmentAssistant.class);
-    private static final String ASSIGNMENT_DESCRIPTION ="This is a single Assignment that reflects the attendance records with an Assignment Score. " +
-                                                        "Any changes to the Attendance Assignment Name, Attendance Weights, or Total Points will be updated in the single assignment when you select Push Assignment to Canvas from the K-State Attendance tool. " +
-                                                        "<strong>DO NOT edit the Attendance Assignment Name or Total Points in the Assignment tool.</strong> " +
-                                                        "<p>Instructors who wish to edit the Assignment Group, ‘Assign to’, and the publish state on an assignment can do so in the Assignment tool. These changes cannot be made in the K-State Attendance tool.</p>";
 
     @Autowired
     private AttendanceAssignmentService assignmentService;
@@ -45,9 +41,9 @@ public class CanvasAssignmentAssistant {
     @Autowired
     private CanvasApiWrapperService canvasApiWrapperService;
 
-    public Assignment createAssignmentInCanvas(Long courseId, Long canvasSectionId, AttendanceAssignment attendanceAssignment, OauthToken oauthToken) throws AttendanceAssignmentException {
+    public Assignment createAssignmentInCanvas(Long courseId, Long canvasSectionId, AttendanceAssignment attendanceAssignment, Long groupId, OauthToken oauthToken) throws AttendanceAssignmentException {
         Optional<Assignment> canvasAssignmentOptional;
-        Assignment assignment = generateCanvasAssignment(courseId, attendanceAssignment);
+        Assignment assignment = generateCanvasAssignment(courseId, attendanceAssignment, groupId);
         try {
             canvasAssignmentOptional = canvasApiWrapperService.createAssignment(courseId, assignment, oauthToken);
         } catch (IOException e) {
@@ -65,14 +61,15 @@ public class CanvasAssignmentAssistant {
         return canvasAssignment;
     }
 
-    private Assignment generateCanvasAssignment(Long courseId, AttendanceAssignment attendanceAssignment) {
+    private Assignment generateCanvasAssignment(Long courseId, AttendanceAssignment attendanceAssignment, Long groupId) {
         Assignment assignment = new Assignment();
+        assignment.setAssignmentGroupId(groupId);
         assignment.setName(attendanceAssignment.getAssignmentName());
         assignment.setPointsPossible(Double.valueOf(attendanceAssignment.getAssignmentPoints()));
         assignment.setCourseId(courseId.toString());
-        assignment.setDescription(ASSIGNMENT_DESCRIPTION);
         assignment.setPublished(true);
         assignment.setUnpublishable(false);
+        assignment.setMuted("true");
         return assignment;
     }
 

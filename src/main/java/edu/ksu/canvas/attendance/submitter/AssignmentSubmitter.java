@@ -10,6 +10,7 @@ import edu.ksu.canvas.attendance.model.AttendanceSummaryModel;
 import edu.ksu.canvas.attendance.services.*;
 import edu.ksu.canvas.model.Progress;
 import edu.ksu.canvas.model.assignment.Assignment;
+import edu.ksu.canvas.model.assignment.AssignmentGroup;
 import edu.ksu.canvas.oauth.OauthToken;
 import edu.ksu.canvas.requestOptions.MultipleSubmissionsOptions;
 import org.apache.log4j.Logger;
@@ -56,12 +57,10 @@ public class AssignmentSubmitter {
      * @param summaryForSections
      */
     public void submitCourseAttendances(boolean isSimpleAttendance, List<AttendanceSummaryModel> summaryForSections, Long courseId,
-                                        OauthToken oauthToken, List<AttendanceSection> sectionsToGrade) throws AttendanceAssignmentException{
+                                        OauthToken oauthToken, List<AttendanceSection> sectionsToGrade) throws AttendanceAssignmentException, IOException{
 
         for (AttendanceSection section: sectionsToGrade) {
             for (AttendanceSummaryModel sectionSummary : summaryForSections){
-                LOG.warn(summaryForSections.size());
-                LOG.warn(sectionSummary);
                 if (sectionSummary.getSectionId() == section.getCanvasSectionId()){
                     AttendanceAssignment attendanceAssignment = section.getAttendanceAssignment();
 
@@ -79,7 +78,7 @@ public class AssignmentSubmitter {
      * associated to the attendance assignment then a new canvas assignment will be created and associate to the attendance assignment.
      */
     private void gradePushingValidation(Long courseId, Long canvasSectionId, OauthToken oauthToken, AttendanceSummaryModel model,
-                                        AttendanceAssignment attendanceAssignment) throws AttendanceAssignmentException{
+                                        AttendanceAssignment attendanceAssignment) throws AttendanceAssignmentException, IOException{
 
         if (attendanceAssignment.getStatus() == AttendanceAssignment.Status.UNKNOWN){
             attendanceAssignment = assignmentValidator.validateAttendanceAssignment(courseId, attendanceAssignment, canvasApiWrapperService, oauthToken);
@@ -91,8 +90,22 @@ public class AssignmentSubmitter {
             canvasAssignmentAssistant.editAssignmentInCanvas(courseId, attendanceAssignment, oauthToken);
         }
         else if (attendanceAssignment.getStatus() == AttendanceAssignment.Status.NOT_LINKED_TO_CANVAS){
-            LOG.warn("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
-            Assignment assignment = canvasAssignmentAssistant.createAssignmentInCanvas(courseId, canvasSectionId, attendanceAssignment, oauthToken);
+
+            List<AssignmentGroup> assignmentGroups = canvasApiWrapperService.listAssignmentGroups(courseId.toString(),oauthToken);
+            Long defaultGroupId = 0L;
+
+            for (AssignmentGroup group: assignmentGroups){
+                if (group.getName().equals("Attendance")){
+                    defaultGroupId = group.getId();
+                    break;
+                }
+            }
+            if (defaultGroupId == 0L){
+                AssignmentGroup group = canvasApiWrapperService.createAssignmentGroup(courseId.toString(), oauthToken);
+                defaultGroupId = group.getId();
+            }
+            Assignment assignment = canvasAssignmentAssistant.createAssignmentInCanvas(courseId, canvasSectionId, attendanceAssignment, defaultGroupId, oauthToken);
+
             canvasApiWrapperService.createAssignmentOverride(oauthToken, Integer.valueOf(assignment.getId()), (int)model.getSectionId(), courseId.toString());
             canvasApiWrapperService.setAssignmentOnlyVisibleToOverrides(oauthToken, courseId.toString(), assignment);
         }
@@ -203,6 +216,16 @@ public class AssignmentSubmitter {
 
     private int getTotalSimpleClasses(AttendanceSummaryModel.Entry entry) {
         return entry.getTotalClassesExcused() + entry.getTotalClassesMissed() + entry.getTotalClassesTardy() + entry.getTotalClassesPresent();
+    }
+
+    private boolean checkForAttendanceGroup(List<AssignmentGroup> assignmentGroups){
+        boolean groupExists = false;
+        for(AssignmentGroup group: assignmentGroups){
+            if (group.getName().equals("Attendance")){
+                groupExists = true;
+            }
+        }
+        return groupExists;
     }
 
 }

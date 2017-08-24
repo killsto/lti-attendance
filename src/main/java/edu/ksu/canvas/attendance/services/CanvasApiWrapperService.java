@@ -213,11 +213,8 @@ public class CanvasApiWrapperService {
         AssignmentGroupWriter writer = canvasApiFactory.getWriter(AssignmentGroupWriter.class, oauthToken);
         AssignmentGroup group = new AssignmentGroup();
         group.setName("Attendance");
-        Optional<AssignmentGroup> group1 = writer.createAssignmenGroup(courseId, group);
-        if (group1.isPresent()){
-            return group1.get();
-        }
-        else return null;
+        return writer.createAssignmentGroup(courseId, group).get();
+
     }
 
     class EnrollmentOptionsFactory {
