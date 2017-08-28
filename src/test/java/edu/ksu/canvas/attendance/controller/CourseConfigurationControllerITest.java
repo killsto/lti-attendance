@@ -14,6 +14,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import static org.hamcrest.Matchers.is;
@@ -101,8 +102,7 @@ public class CourseConfigurationControllerITest extends BaseControllerITest {
                 .param("saveCourseConfiguration", "Save Course Configuration")
                 .param("defaultMinutesPerSession", String.valueOf(expectedDefaultMinutesPerSession))
                 .param("totalClassMinutes", String.valueOf(expectedTotalClassMinutes))
-                .param("simpleAttendance", String.valueOf(expectedSimpleAttendanceValue))
-                .param("gradingOn", String.valueOf(false)))
+                .param("simpleAttendance", String.valueOf(expectedSimpleAttendanceValue)))
                 .andExpect(status().isOk())
                 .andExpect(view().name("forward:/courseConfiguration/" + irrelevantSectionId + "?updateSuccessful=true"));
         
@@ -118,7 +118,7 @@ public class CourseConfigurationControllerITest extends BaseControllerITest {
         Integer expectedDefaultMinutesPerSession = 100;
         Integer expectedTotalClassMinutes = 1000;
         Boolean expectedSimpleAttendanceValue = true;
-        String expectedAssignmentName = "Assignment Name";
+        String expectedAssignmentName = "Attendance";
         String expectedAssignmentPoints = "120.0";
         String expectedPresentPoints = "100.0";
         String expectedTardyPoints = "0.0";
@@ -130,7 +130,6 @@ public class CourseConfigurationControllerITest extends BaseControllerITest {
                 .param("defaultMinutesPerSession", String.valueOf(expectedDefaultMinutesPerSession))
                 .param("totalClassMinutes", String.valueOf(expectedTotalClassMinutes))
                 .param("simpleAttendance", String.valueOf(expectedSimpleAttendanceValue))
-                .param("gradingOn", String.valueOf(true))
                 .param("assignmentName", expectedAssignmentName)
                 .param("assignmentPoints", expectedAssignmentPoints)
                 .param("presentPoints", expectedPresentPoints)
@@ -147,7 +146,6 @@ public class CourseConfigurationControllerITest extends BaseControllerITest {
 
         AttendanceSection section = sectionRepository.findByCanvasSectionId(1000L);
         AttendanceAssignment attendanceAssignment = assignmentRepository.findByAttendanceSection(section);
-        assertEquals(true, attendanceAssignment.getGradingOn());
         assertEquals(expectedAssignmentName, attendanceAssignment.getAssignmentName());
         assertEquals(expectedAssignmentPoints, attendanceAssignment.getAssignmentPoints());
         assertEquals(expectedPresentPoints, attendanceAssignment.getPresentPoints());
@@ -166,7 +164,6 @@ public class CourseConfigurationControllerITest extends BaseControllerITest {
         mockMvc.perform(post("/courseConfiguration/" + irrelevantSectionId + "/save")
                 .param("saveCourseConfiguration", "Save Course Configuration")
                 .param("defaultMinutesPerSession", String.valueOf(expectedDefaultMinutesPerSession))
-                .param("gradingOn", "false")
                 .param("totalClassMinutes", String.valueOf(expectedTotalClassMinutes)))
                 .andExpect(status().isOk())
                 .andExpect(view().name("forward:/courseConfiguration/"+irrelevantSectionId+"?updateSuccessful=true"));
@@ -187,7 +184,6 @@ public class CourseConfigurationControllerITest extends BaseControllerITest {
         mockMvc.perform(post(postPageURL)
                 .param("saveCourseConfiguration", "Save Course Configuration")
                 .param("defaultMinutesPerSession", String.valueOf(invalidDefaultMinutesPerSession))
-                .param("gradingOn", "false")
                 .param("totalClassMinutes", String.valueOf(invalidTotalClassMinutes)))
                 .andExpect(status().isOk())
                 .andExpect(view().name("/courseConfiguration"))

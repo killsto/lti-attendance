@@ -5,15 +5,13 @@ import edu.ksu.canvas.interfaces.AssignmentOverrideWriter;
 import edu.ksu.canvas.interfaces.EnrollmentReader;
 import edu.ksu.canvas.model.Enrollment;
 import edu.ksu.canvas.model.Section;
-import edu.ksu.canvas.model.assignment.Assignment;
 import edu.ksu.canvas.model.assignment.AssignmentOverride;
+import edu.ksu.canvas.oauth.OauthToken;
 import edu.ksu.canvas.requestOptions.GetEnrollmentOptions;
 import edu.ksu.lti.launch.exception.NoLtiSessionException;
 import edu.ksu.lti.launch.model.LtiSession;
-import edu.ksu.canvas.oauth.OauthToken;
 import edu.ksu.lti.launch.service.LtiSessionService;
 import org.apache.log4j.Logger;
-import org.hamcrest.Matchers;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -27,9 +25,7 @@ import java.util.*;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotEquals;
 import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.contains;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.powermock.api.mockito.PowerMockito.when;
@@ -74,7 +70,7 @@ public class CanvasApiWrapperServiceUTest {
     @SuppressWarnings("unchecked")
     public void getEnrollmentsFromCanvas_HappyPath() throws Exception {
         Section firstSection = new Section();
-        int firstSectiondId = 1;
+        Long firstSectiondId = 1L;
         firstSection.setId(firstSectiondId);
         Section secondSection = new Section();
         int secondSectionId = 2;

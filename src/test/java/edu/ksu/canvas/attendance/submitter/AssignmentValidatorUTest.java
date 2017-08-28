@@ -71,7 +71,6 @@ public class AssignmentValidatorUTest {
         attendanceAssignment.setAssignmentId(ASSIGNMENT_ID);
         attendanceAssignment.setAssignmentName(ASSIGNMENT_NAME);
         attendanceAssignment.setCanvasAssignmentId(CANVAS_ASSIGNMENT_ID);
-        attendanceAssignment.setGradingOn(true);
         attendanceAssignment.setAssignmentPoints(String.valueOf(ASSIGNMENT_POINTS));
         attendanceAssignment.setAbsentPoints("0.0");
         attendanceAssignment.setExcusedPoints("0.0");
@@ -100,7 +99,7 @@ public class AssignmentValidatorUTest {
     public void validateCanvasAssignmentHappyPath() throws IOException, AttendanceAssignmentException {
         when(canvasApiWrapperService.getSingleAssignment(COURSE_ID, oauthToken, Long.toString(CANVAS_ASSIGNMENT_ID))).thenReturn(assignmentOptional);
 
-        assignmentValidator.validateCanvasAssignment(assignmentConfigurationFromSetup, COURSE_ID, attendanceAssignment, canvasApiWrapperService, oauthToken);
+        assignmentValidator.validateCanvasAssignment(COURSE_ID, attendanceAssignment, canvasApiWrapperService, oauthToken);
         Assert.assertNotEquals(AttendanceAssignment.Status.NOT_LINKED_TO_CANVAS, attendanceAssignment.getStatus());
         Assert.assertNotEquals(AttendanceAssignment.Status.CANVAS_AND_DB_DISCREPANCY, attendanceAssignment.getStatus());
     }
@@ -132,7 +131,7 @@ public class AssignmentValidatorUTest {
         when(canvasApiWrapperService.getSingleAssignment(COURSE_ID, oauthToken, Long.toString(CANVAS_ASSIGNMENT_ID))).thenReturn(assignmentOptional);
 
         try {
-            assignmentValidator.validateCanvasAssignment(assignmentConfigurationFromSetup, COURSE_ID, attendanceAssignment, canvasApiWrapperService, oauthToken);
+            assignmentValidator.validateCanvasAssignment(COURSE_ID, attendanceAssignment, canvasApiWrapperService, oauthToken);
             Assert.fail("Expected AttendanceAssignmentException.");
         } catch (AttendanceAssignmentException exception) {
             LOG.warn("The following exception has been thrown: " + exception);

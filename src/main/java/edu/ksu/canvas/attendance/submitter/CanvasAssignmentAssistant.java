@@ -14,7 +14,6 @@ import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
-import org.springframework.util.CollectionUtils;
 
 import java.io.IOException;
 import java.util.List;
@@ -44,6 +43,9 @@ public class CanvasAssignmentAssistant {
     public Assignment createAssignmentInCanvas(Long courseId, Long canvasSectionId, AttendanceAssignment attendanceAssignment, Long groupId, OauthToken oauthToken) throws AttendanceAssignmentException {
         Optional<Assignment> canvasAssignmentOptional;
         Assignment assignment = generateCanvasAssignment(courseId, attendanceAssignment, groupId);
+
+        System.out.println("Generate: " + courseId + ", " + attendanceAssignment + ", " + groupId);
+
         try {
             canvasAssignmentOptional = canvasApiWrapperService.createAssignment(courseId, assignment, oauthToken);
         } catch (IOException e) {
@@ -57,6 +59,9 @@ public class CanvasAssignmentAssistant {
         }
         Assignment canvasAssignment = canvasAssignmentOptional.get();
         LOG.info("Created canvas assignment: " + canvasAssignment.getId());
+
+        System.out.println("CSI: " + canvasSectionId + " & CA: " + canvasAssignment.getId());
+
         saveCanvasAssignmentId(canvasSectionId, canvasAssignment);
         return canvasAssignment;
     }

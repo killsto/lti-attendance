@@ -29,6 +29,7 @@ public class AttendanceSectionServiceUTest {
     private static final long SECTION_ID = 1111L;
     private static final String ASSIGNMENT_NAME = "ASSIGNMENT NAME";
     private AttendanceSectionService sectionService;
+    private List<AttendanceSection> sectionList;
     
     @Mock
     private AttendanceSectionRepository mockSectionRepository;
@@ -110,15 +111,13 @@ public class AttendanceSectionServiceUTest {
         sectionList.add(attendanceSection);
 
         AttendanceAssignment attendanceAssignment = new AttendanceAssignment();
-        attendanceAssignment.setGradingOn(true);
         attendanceAssignment.setAssignmentName(ASSIGNMENT_NAME);
 
         when(mockSectionRepository.findByCanvasCourseId(CANVAS_COURSE_ID)).thenReturn(sectionList);
         when(mockAssignmentRepository.findByAttendanceSection(sectionList.get(0))).thenReturn(attendanceAssignment);
 
-        sectionService.resetAttendanceAssignmentsForCourse(CANVAS_COURSE_ID);
+        sectionService.resetAttendanceAssignmentsForCourse(sectionList);
         assertEquals(null, attendanceAssignment.getAssignmentName());
-        assertEquals(false, attendanceAssignment.getGradingOn());
     }
     
 }

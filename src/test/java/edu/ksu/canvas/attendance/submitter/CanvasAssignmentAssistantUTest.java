@@ -33,6 +33,7 @@ public class CanvasAssignmentAssistantUTest {
 
     private static final Logger LOG = Logger.getLogger(CanvasAssignmentAssistantUTest.class);
     private static final Long COURSE_ID = 2121212121L;
+    private static final Long GROUP_ID = 3333L;
     private static final String OAUTH_STRING = "sdfsdfSDFSDFsdfsdFSDFsdfSDFSDgfsdSFDFSDF";
     private static final Long ASSIGNMENT_ID = 8484848484L;
     private static final String ASSIGNMENT_NAME = "NAME OF THE ASSIGNMENT";
@@ -77,7 +78,6 @@ public class CanvasAssignmentAssistantUTest {
         attendanceAssignment.setAssignmentId(ASSIGNMENT_ID);
         attendanceAssignment.setAssignmentName(ASSIGNMENT_NAME);
         attendanceAssignment.setCanvasAssignmentId(CANVAS_ASSIGNMENT_ID);
-        attendanceAssignment.setGradingOn(true);
         attendanceAssignment.setAssignmentPoints(String.valueOf(ASSIGNMENT_POINTS));
         attendanceAssignment.setAbsentPoints("0.0");
         attendanceAssignment.setExcusedPoints("0.0");
@@ -116,7 +116,7 @@ public class CanvasAssignmentAssistantUTest {
         when(assignmentService.findBySection(any())).thenReturn(attendanceAssignment);
         when(assignmentRepository.save(attendanceAssignment)).thenReturn(attendanceAssignment);
 
-        canvasAssignmentAssistant.createAssignmentInCanvas(COURSE_ID, attendanceAssignment, oauthToken);
+        canvasAssignmentAssistant.createAssignmentInCanvas(COURSE_ID, SECTION_ID, attendanceAssignment, GROUP_ID, oauthToken);
     }
 
     @Test
@@ -126,7 +126,7 @@ public class CanvasAssignmentAssistantUTest {
         when(canvasApiWrapperService.createAssignment(any(), any(), any())).thenReturn(assignmentOptional);
 
         try {
-            canvasAssignmentAssistant.createAssignmentInCanvas(COURSE_ID, attendanceAssignment, oauthToken);
+            canvasAssignmentAssistant.createAssignmentInCanvas(COURSE_ID, SECTION_ID, attendanceAssignment, GROUP_ID, oauthToken);
             Assert.fail("Expected AttendanceAssignmentException");
         } catch (AttendanceAssignmentException e) {
             LOG.warn("There was an error in creating the Assignment. The following exception has been thrown: " + e);
@@ -161,7 +161,7 @@ public class CanvasAssignmentAssistantUTest {
         when(attendanceSectionService.getSectionByCanvasCourseId(COURSE_ID)).thenReturn(sectionList);
         when(assignmentRepository.findByAttendanceSection(sectionList.get(0))).thenReturn(attendanceAssignment);
 
-        canvasAssignmentAssistant.deleteAssignmentInCanvas(COURSE_ID, oauthToken);
+        canvasAssignmentAssistant.deleteAssignmentInCanvas(sectionList, oauthToken);
         verify(canvasApiWrapperService, times(1)).deleteAssignment(COURSE_ID.toString(), CANVAS_ASSIGNMENT_ID.toString(), oauthToken);
     }
 
@@ -173,7 +173,7 @@ public class CanvasAssignmentAssistantUTest {
         when(assignmentRepository.findByAttendanceSection(sectionList.get(0))).thenReturn(attendanceAssignment);
 
         try {
-            canvasAssignmentAssistant.deleteAssignmentInCanvas(COURSE_ID, oauthToken);
+            canvasAssignmentAssistant.deleteAssignmentInCanvas(sectionList, oauthToken);
         } catch (AttendanceAssignmentException exception) {
             LOG.warn("There was an error when deleting the Assignment. The following exception has been thrown: " + exception);
             Assert.assertEquals(AttendanceAssignmentException.Error.DELETION_ERROR, exception.error);

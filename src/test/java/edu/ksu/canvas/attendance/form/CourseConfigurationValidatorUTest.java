@@ -35,12 +35,11 @@ public class CourseConfigurationValidatorUTest {
         courseConfigurationForm = new CourseConfigurationForm();
         courseConfigurationForm.setTotalClassMinutes(validTotalClassMinutes);
         courseConfigurationForm.setDefaultMinutesPerSession(validDefaultMinutesPerSession);
-        courseConfigurationForm.setGradingOn(false);
-
     }
 
     @Test
     public void validate_rejectMinutesPerSessionGreaterThanTotalMinutes() {
+        courseConfigurationForm.setSimpleAttendance(false);
         courseConfigurationForm.setTotalClassMinutes(0);
 
         ArgumentCaptor<String> capturedField = ArgumentCaptor.forClass(String.class);
@@ -55,8 +54,8 @@ public class CourseConfigurationValidatorUTest {
 
     @Test
     public void validate_rejectWrongPoints() {
+        courseConfigurationForm.setSimpleAttendance(true);
         courseConfigurationForm.setAssignmentName("Attendance Assignment");
-        courseConfigurationForm.setGradingOn(true);
         courseConfigurationForm.setAssignmentPoints("100.0");
         courseConfigurationForm.setPresentPoints("100.0");
         courseConfigurationForm.setAbsentPoints("120.0");
@@ -75,8 +74,8 @@ public class CourseConfigurationValidatorUTest {
 
     @Test
     public void validate_rejectNullName() {
+        courseConfigurationForm.setSimpleAttendance(true);
         courseConfigurationForm.setAssignmentName(null);
-        courseConfigurationForm.setGradingOn(true);
         courseConfigurationForm.setAssignmentPoints("100.0");
         courseConfigurationForm.setPresentPoints("100.0");
         courseConfigurationForm.setAbsentPoints("100.0");
@@ -95,8 +94,8 @@ public class CourseConfigurationValidatorUTest {
 
     @Test
     public void validate_rejectBadAssignmentPoints() {
+        courseConfigurationForm.setSimpleAttendance(true);
         courseConfigurationForm.setAssignmentName("Attendance Assignment");
-        courseConfigurationForm.setGradingOn(true);
         courseConfigurationForm.setAssignmentPoints("-100.0");
         courseConfigurationForm.setPresentPoints("100.0");
         courseConfigurationForm.setAbsentPoints("100.0");
@@ -115,8 +114,8 @@ public class CourseConfigurationValidatorUTest {
 
     @Test
     public void validate_rejectNullPoints() {
+        courseConfigurationForm.setSimpleAttendance(true);
         courseConfigurationForm.setAssignmentName("Attendance Assignment");
-        courseConfigurationForm.setGradingOn(true);
         courseConfigurationForm.setAssignmentPoints("100.0");
         courseConfigurationForm.setPresentPoints("100.0");
         courseConfigurationForm.setAbsentPoints(null);
@@ -139,8 +138,8 @@ public class CourseConfigurationValidatorUTest {
 
         inputValidator = new InputValidator();
 
+        courseConfigurationForm.setSimpleAttendance(true);
         courseConfigurationForm.setAssignmentName("Attendance Assignment");
-        courseConfigurationForm.setGradingOn(true);
         courseConfigurationForm.setAssignmentPoints("100.0");
         courseConfigurationForm.setPresentPoints("100.0");
         courseConfigurationForm.setAbsentPoints("abcd");

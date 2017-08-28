@@ -22,32 +22,31 @@ public class CourseConfigurationValidator implements Validator {
         String tardyPoints = courseConfigurationForm.getTardyPoints();
         String absentPoints = courseConfigurationForm.getAbsentPoints();
         String excusedPoints = courseConfigurationForm.getExcusedPoints();
+        Boolean isSimpleAttendance = courseConfigurationForm.getSimpleAttendance();
 
 
         if (courseConfigurationForm.getTotalClassMinutes() < courseConfigurationForm.getDefaultMinutesPerSession() && !errors.hasFieldErrors("totalClassMinutes")) {
             errors.rejectValue("defaultMinutesPerSession", "ExceedTotal.courseConfigurationForm.defaultMinutesPerSession");
         }
 
+        if (isSimpleAttendance) {
+            if (courseConfigurationForm.getAssignmentName() == null || courseConfigurationForm.getAssignmentName().length() <= 1 || courseConfigurationForm.getAssignmentName().trim().isEmpty()) {
+                errors.rejectValue("assignmentName", "Assignment Name is required.");
+            }
 
-        if (courseConfigurationForm.getAssignmentName() == null || courseConfigurationForm.getAssignmentName().length() <= 1 || courseConfigurationForm.getAssignmentName().trim().isEmpty()) {
-            errors.rejectValue("assignmentName", "Assignment Name is required.");
-            return;
+            if (assignmentPoints == null || (Double.parseDouble(assignmentPoints) < 0) || (Double.parseDouble(assignmentPoints)) >= 1000) {
+                errors.rejectValue("assignmentPoints", "Total Points is a required field and must be between 0 and 1000.");
+            }
+
+            if (presentPoints == null || tardyPoints == null || absentPoints == null || excusedPoints == null) {
+                errors.rejectValue("presentPoints", "All status point fields are required.");
+                return;
+            }
+
+            if (isValueOutOfBounds(presentPoints) || isValueOutOfBounds(tardyPoints) || isValueOutOfBounds(absentPoints) || isValueOutOfBounds(excusedPoints)) {
+                errors.rejectValue("presentPoints", "Status percentages must be set between 0 and 100.");
+            }
         }
-
-        if (assignmentPoints == null || (Double.parseDouble(assignmentPoints) < 0) || (Double.parseDouble(assignmentPoints)) >= 1000) {
-            errors.rejectValue("assignmentPoints", "Total Points is a required field and must be between 0 and 1000.");
-            return;
-        }
-
-        if (presentPoints == null || tardyPoints == null || absentPoints == null || excusedPoints == null) {
-            errors.rejectValue("presentPoints", "All status point fields are required.");
-            return;
-        }
-
-        if (isValueOutOfBounds(presentPoints) || isValueOutOfBounds(tardyPoints) || isValueOutOfBounds(absentPoints) || isValueOutOfBounds(excusedPoints)) {
-            errors.rejectValue("presentPoints", "Status percentages must be set between 0 and 100.");
-        }
-
     }
     private boolean isValueOutOfBounds(String value) {
         Double val = Double.parseDouble(value);

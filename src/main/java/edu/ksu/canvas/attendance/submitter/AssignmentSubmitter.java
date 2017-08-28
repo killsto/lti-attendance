@@ -1,7 +1,6 @@
 package edu.ksu.canvas.attendance.submitter;
 
 
-import edu.ksu.canvas.attendance.entity.Attendance;
 import edu.ksu.canvas.attendance.entity.AttendanceAssignment;
 import edu.ksu.canvas.attendance.entity.AttendanceCourse;
 import edu.ksu.canvas.attendance.entity.AttendanceSection;
@@ -59,11 +58,14 @@ public class AssignmentSubmitter {
     public void submitCourseAttendances(boolean isSimpleAttendance, List<AttendanceSummaryModel> summaryForSections, Long courseId,
                                         OauthToken oauthToken, List<AttendanceSection> sectionsToGrade) throws AttendanceAssignmentException, IOException{
 
+        System.out.println("Sections to grade: " + sectionsToGrade);
+
+
         for (AttendanceSection section: sectionsToGrade) {
             for (AttendanceSummaryModel sectionSummary : summaryForSections){
                 if (sectionSummary.getSectionId() == section.getCanvasSectionId()){
                     AttendanceAssignment attendanceAssignment = section.getAttendanceAssignment();
-
+//broken
                     gradePushingValidation(courseId, section.getCanvasSectionId(), oauthToken, sectionSummary, attendanceAssignment);
 
                     submitSectionAttendances(isSimpleAttendance, sectionSummary, attendanceAssignment, courseId, oauthToken);
@@ -79,7 +81,7 @@ public class AssignmentSubmitter {
      */
     private void gradePushingValidation(Long courseId, Long canvasSectionId, OauthToken oauthToken, AttendanceSummaryModel model,
                                         AttendanceAssignment attendanceAssignment) throws AttendanceAssignmentException, IOException{
-
+//broken
         if (attendanceAssignment.getStatus() == AttendanceAssignment.Status.UNKNOWN){
             attendanceAssignment = assignmentValidator.validateAttendanceAssignment(courseId, attendanceAssignment, canvasApiWrapperService, oauthToken);
         }
