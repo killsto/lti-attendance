@@ -83,7 +83,7 @@
                 <p>Once you've saved a Setup, the next step is to push your Attendance records to Canvas and convert
                 them into an assignment.</p>
                 <p>After you click "OK", you will be redirected back to the Course Setup page. Depending on the size of
-                your class, it may take upwards of 30 minutes before Canvas has received all of your information. You
+                your class, it may take up to 24 hrs before Canvas has received all of your information. You
                 may close your browser or visit other websites without compromising the grades you're pushing. Please
                 keep this delay in mind if information in the "Grades" and "Assignments" tabs in Canvas is not completely
                 up to date.</p>
@@ -139,9 +139,9 @@
                 total. According to the setup above, if a student is "Present" for 10 days, "Absent" for 5, and "Excused"
                 for 3, they will receive a grade of 31.94 out of 50. Let's run through the math:</p>
                 <br>
-                <p>(10 days "Present") * (<strong>100%</strong> of 50 possible points) = 10 * (<strong>1.00</strong> * 50) = 10 * 50 = 500</p>
-                <p>(5 days "Absent") * (<strong>0%</strong> of 50 possible points) = 5 * (<strong>0.00</strong> * 50) = 0 * 50 = 0</p>
-                <p>(3 days "Excused") * (<strong>50%</strong> of 50 possible points) = 3 * (<strong>0.50</strong> * 50) = 3 * 25 = 75</p>
+                <p>(10 days Present) * (<strong>100%</strong> of 50 possible points) = 10 * (<strong>1.00</strong> * 50) = 10 * 50 = 500</p>
+                <p>(5 days Absent) * (<strong>0%</strong> of 50 possible points) = 5 * (<strong>0.00</strong> * 50) = 0 * 50 = 0</p>
+                <p>(3 days Excused) * (<strong>50%</strong> of 50 possible points) = 3 * (<strong>0.50</strong> * 50) = 3 * 25 = 75</p>
                 <br>
                 <p>500 + 0 + 75 = 575 total points earned over the course of 18 total days </p>
                 <p>575/18 = <em><strong>31.94</strong></em>, which is the final grade given to the student.</p>
@@ -168,6 +168,46 @@
                 NOT</strong> edit the assignments within the Assignments tab, instead using the Attendance tool.</p>
                 <p>The Grades tab in Canvas will display all attendance assignments as regular assignments that have been
                 assigned only to their relative sections.
+            </div>
+        </div>
+    </div>
+
+    <div class="panel panel-default">
+        <div class="panel-heading" role="tab" id="headingSix">
+            <h4 class="panel-title">
+                <a class="collapsed" role="button" data-toggle="collapse" data-parent="#accordion" href="#collapseSix" aria-expanded="false" aria-controls="collapseSix">
+                    Troubleshooting
+                </a>
+            </h4>
+        </div>
+        <div id="collapseSix" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingSix">
+            <div class="panel-body">
+                <p>If you experience a Whitelabel error page after attempting to push grades for a course, please contact the K-State help desk.
+                    If you notice students missing from your roster, there may have been an error when your course was synchronized with canvas.
+                    Please click the "Synchronize with Canvas" button on the Setup page to correct the error
+                </p>
+
+            </div>
+        </div>
+    </div>
+
+    <div class="panel panel-default">
+        <div class="panel-heading" role="tab" id="headingSeven">
+            <h4 class="panel-title">
+                <a class="collapsed" role="button" data-toggle="collapse" data-parent="#accordion" href="#collapseSeven" aria-expanded="false" aria-controls="collapseSeven">
+                    New Attendance Status
+                </a>
+            </h4>
+        </div>
+        <div id="collapseSeven" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingSeven">
+            <div class="panel-body">
+                <p>With the new update comes an updated list of Attendance statuses. All old statuses are still listed however the program now
+                    defaults to a state of "---" instead of defaulting to "Present". A status of "---" indicates that no record has yet been saved for
+                    the student. Note that this does NOT mean the student was "Absent" or "Tardy". Our recommended procedure for recoording attendance
+                    is to mark all students who are "Absent", "Excused", or "Tardy". After marking all applicable students, click the "Set Unassigned to Present"
+                    button to change all remaining "---" statuses into "Present" for the selected section.
+                </p>
+
             </div>
         </div>
     </div>
