@@ -41,7 +41,7 @@ public class AttendanceService {
         List<Attendance> attendancesInDBForCourse = null;
         for (SectionModel sectionModel : rosterForm.getSectionModels()) {
             List<AttendanceStudent> attendanceStudents = null;
-            if (sectionModel.getCanvasSectionId() == rosterForm.getSectionId()) {
+            if (sectionModel.getSectionId() != null && sectionModel.getSectionId().longValue() == rosterForm.getSectionId()) {
                 for (AttendanceModel attendanceModel : sectionModel.getAttendances()) {
                     if (attendanceModel.getAttendanceId() == null) {
                         if (attendanceStudents == null) {
