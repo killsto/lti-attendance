@@ -218,7 +218,7 @@
         </div>
     </div>
 
-    <div class="confirmation-modal modal fade in" id = "pushModal">
+       <div class="confirmation-modal modal fade in" id = "pushModal">
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">

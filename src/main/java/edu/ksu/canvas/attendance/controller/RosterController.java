@@ -1,12 +1,20 @@
 package edu.ksu.canvas.attendance.controller;
 
+import edu.ksu.canvas.attendance.entity.AttendanceAssignment;
 import edu.ksu.canvas.attendance.entity.AttendanceSection;
+import edu.ksu.canvas.attendance.exception.AttendanceAssignmentException;
+import edu.ksu.canvas.attendance.form.CourseConfigurationForm;
+import edu.ksu.canvas.attendance.form.InputValidator;
 import edu.ksu.canvas.attendance.form.RosterForm;
 import edu.ksu.canvas.attendance.form.RosterFormValidator;
+import edu.ksu.canvas.attendance.model.AttendanceSummaryModel;
 import edu.ksu.canvas.attendance.model.SectionModelFactory;
 import edu.ksu.canvas.attendance.services.AttendanceService;
 import edu.ksu.canvas.attendance.services.AttendanceCourseService;
 import edu.ksu.canvas.attendance.services.AttendanceSectionService;
+import edu.ksu.canvas.attendance.services.ReportService;
+import edu.ksu.canvas.attendance.submitter.AssignmentSubmitter;
+import edu.ksu.canvas.attendance.submitter.CanvasAssignmentAssistant;
 import edu.ksu.canvas.attendance.util.DropDownOrganizer;
 import edu.ksu.lti.launch.exception.NoLtiSessionException;
 
@@ -23,6 +31,7 @@ import org.springframework.web.servlet.ModelAndView;
 
 import javax.validation.Valid;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -49,6 +58,18 @@ public class RosterController extends AttendanceBaseController {
 
     @Autowired
     private RosterFormValidator validator;
+
+    @Autowired
+    private InputValidator inputValidator;
+
+    @Autowired
+    private AssignmentSubmitter assignmentSubmitter;
+
+    @Autowired
+    private ReportService reportService;
+
+    @Autowired
+    private CanvasAssignmentAssistant assignmentAssistant;
 
 
     @InitBinder
@@ -152,5 +173,46 @@ public class RosterController extends AttendanceBaseController {
         }
         return page;
     }
+
+
+
+    private AttendanceAssignment generateAssignmentFromClassSetupForm(CourseConfigurationForm classSetupForm) {
+        AttendanceAssignment assignmentConfigurationFromSetup = new AttendanceAssignment();
+        assignmentConfigurationFromSetup.setAssignmentName(classSetupForm.getAssignmentName());
+        assignmentConfigurationFromSetup.setAssignmentPoints(classSetupForm.getAssignmentPoints());
+        assignmentConfigurationFromSetup.setGradingOn(true);
+        assignmentConfigurationFromSetup.setPresentPoints(classSetupForm.getPresentPoints());
+        assignmentConfigurationFromSetup.setTardyPoints(classSetupForm.getTardyPoints());
+        assignmentConfigurationFromSetup.setExcusedPoints(classSetupForm.getExcusedPoints());
+        assignmentConfigurationFromSetup.setAbsentPoints(classSetupForm.getAbsentPoints());
+        return assignmentConfigurationFromSetup;
+    }
+
+
+    @RequestMapping(value ="/{sectionId}/save", params = "push", method = RequestMethod.POST)
+    public ModelAndView pushGradesToCanvas(@PathVariable Long sectionId, @ModelAttribute("courseConfigurationForm") @Valid CourseConfigurationForm classSetupForm, BindingResult bindingResult) throws NoLtiSessionException{
+        LOG.info("eid: " + canvasService.getEid() + " is pushing grades for course # " + canvasService.getCourseId() + " to Canvas");
+        ModelAndView page = new ModelAndView("forward:/roster/"+sectionId);
+
+
+        Long courseId = Long.valueOf(canvasService.getCourseId());
+
+        boolean isSimpleAttendance = classSetupForm.getSimpleAttendance();
+        List<AttendanceSummaryModel> summaryForSections = isSimpleAttendance ?
+            reportService.getSimpleAttendanceSummaryReport(sectionId) :
+            reportService.getAviationAttendanceSummaryReport(sectionId);
+
+        AttendanceAssignment assignmentConfigurationFromSetup = generateAssignmentFromClassSetupForm(classSetupForm);
+        try{
+            assignmentSubmitter.submitCourseAttendances(isSimpleAttendance, summaryForSections, courseId, canvasService.getOauthToken(), assignmentConfigurationFromSetup);
+            page.addObject("pushingSuccessful", true);
+        } catch(AttendanceAssignmentException e){
+            LOG.warn("The following error occured when submitting the Assignment: " + e);
+            page.addObject("error", e.getMessage());
+        }
+
+        return page;
+    }
+
 
 }
