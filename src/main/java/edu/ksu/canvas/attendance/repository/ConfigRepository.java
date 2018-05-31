@@ -1,6 +1,7 @@
 package edu.ksu.canvas.attendance.repository;
 
 import edu.ksu.canvas.attendance.entity.ConfigItem;
+import org.springframework.context.annotation.Profile;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
 

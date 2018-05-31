@@ -26,7 +26,7 @@ import java.util.List;
 @ComponentScan({"edu.ksu.lti", "edu.ksu.canvas"})
 @EntityScan({"edu.ksu.canvas", "edu.ksu.canvas.interfaces" })
 @PropertySource({"classpath:application.properties"})
-@Profile("prod")
+@Profile({"prod", "embedded"})
 public class AppConfig {
 
     private static final Logger LOG = Logger.getLogger(AppConfig.class);
