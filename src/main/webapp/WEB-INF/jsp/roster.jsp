@@ -343,7 +343,7 @@
 </script>
 
 <form:form id="sectionSelect" modelAttribute="courseConfigurationForm" class="sectionDropdown form-div" method="POST"
-           action="${context}/courseConfiguration/${selectedSectionId}/save">
+           action="${context}/${selectedSectionId}/pushGrades">
     <c:forEach items="${error}" var="oneError">
         <div class="alert alert-danger">
             <p>${oneError}</p>

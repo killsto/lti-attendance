@@ -9,15 +9,14 @@ import edu.ksu.canvas.attendance.form.RosterForm;
 import edu.ksu.canvas.attendance.form.RosterFormValidator;
 import edu.ksu.canvas.attendance.model.AttendanceSummaryModel;
 import edu.ksu.canvas.attendance.model.SectionModelFactory;
-import edu.ksu.canvas.attendance.services.AttendanceService;
 import edu.ksu.canvas.attendance.services.AttendanceCourseService;
 import edu.ksu.canvas.attendance.services.AttendanceSectionService;
+import edu.ksu.canvas.attendance.services.AttendanceService;
 import edu.ksu.canvas.attendance.services.ReportService;
 import edu.ksu.canvas.attendance.submitter.AssignmentSubmitter;
 import edu.ksu.canvas.attendance.submitter.CanvasAssignmentAssistant;
 import edu.ksu.canvas.attendance.util.DropDownOrganizer;
 import edu.ksu.lti.launch.exception.NoLtiSessionException;
-
 import org.apache.commons.validator.routines.LongValidator;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -119,6 +118,8 @@ public class RosterController extends AttendanceBaseController {
         return page;
     }
 
+
+
     @RequestMapping(value = "/{sectionId}/save", params = "changeDate", method = RequestMethod.POST)
     public ModelAndView changeDate(@PathVariable String sectionId, @ModelAttribute("rosterForm") RosterForm rosterForm) throws NoLtiSessionException {
         return roster(rosterForm.getCurrentDate(), sectionId);
@@ -189,7 +190,7 @@ public class RosterController extends AttendanceBaseController {
     }
 
 
-    @RequestMapping(value ="/{sectionId}/save", params = "push", method = RequestMethod.POST)
+    @RequestMapping(value ="/{sectionId}/pushGrades", params = "push", method = RequestMethod.POST)
     public ModelAndView pushGradesToCanvas(@PathVariable Long sectionId, @ModelAttribute("courseConfigurationForm") @Valid CourseConfigurationForm classSetupForm, BindingResult bindingResult) throws NoLtiSessionException{
         LOG.info("eid: " + canvasService.getEid() + " is pushing grades for course # " + canvasService.getCourseId() + " to Canvas");
         ModelAndView page = new ModelAndView("forward:/roster/"+sectionId);
@@ -197,21 +198,40 @@ public class RosterController extends AttendanceBaseController {
 
         Long courseId = Long.valueOf(canvasService.getCourseId());
 
-        boolean isSimpleAttendance = classSetupForm.getSimpleAttendance();
-        List<AttendanceSummaryModel> summaryForSections = isSimpleAttendance ?
-            reportService.getSimpleAttendanceSummaryReport(sectionId) :
-            reportService.getAviationAttendanceSummaryReport(sectionId);
-
-        AttendanceAssignment assignmentConfigurationFromSetup = generateAssignmentFromClassSetupForm(classSetupForm);
-        try{
-            assignmentSubmitter.submitCourseAttendances(isSimpleAttendance, summaryForSections, courseId, canvasService.getOauthToken(), assignmentConfigurationFromSetup);
-            page.addObject("pushingSuccessful", true);
-        } catch(AttendanceAssignmentException e){
-            LOG.warn("The following error occured when submitting the Assignment: " + e);
-            page.addObject("error", e.getMessage());
+        inputValidator.validate(classSetupForm, bindingResult);
+        if (bindingResult.hasErrors()) {
+            List<String> errors = new ArrayList<>();
+            bindingResult.getFieldErrors().forEach(error -> errors.add(error.getCode()));
+            page.addObject("error", errors);
+            page.addObject("selectedSectionId", sectionId);
+            return page;
         }
 
-        return page;
+        validator.validate(classSetupForm, bindingResult);
+        if (bindingResult.hasErrors()) {
+            List<String> errors = new ArrayList<>();
+            bindingResult.getFieldErrors().forEach(error -> errors.add(error.getCode()));
+            page.addObject("error", errors);
+            page.addObject("selectedSectionId", sectionId);
+            return page;
+        } else {
+
+            boolean isSimpleAttendance = classSetupForm.getSimpleAttendance();
+            List<AttendanceSummaryModel> summaryForSections = isSimpleAttendance ?
+                reportService.getSimpleAttendanceSummaryReport(sectionId) :
+                reportService.getAviationAttendanceSummaryReport(sectionId);
+
+            AttendanceAssignment assignmentConfigurationFromSetup = generateAssignmentFromClassSetupForm(classSetupForm);
+            try {
+                assignmentSubmitter.submitCourseAttendances(isSimpleAttendance, summaryForSections, courseId, canvasService.getOauthToken(), assignmentConfigurationFromSetup);
+                page.addObject("pushingSuccessful", true);
+            } catch (AttendanceAssignmentException e) {
+                LOG.warn("The following error occured when submitting the Assignment: " + e);
+                page.addObject("error", e.getMessage());
+            }
+
+            return page;
+        }
     }
 
 
